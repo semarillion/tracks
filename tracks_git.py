@@ -5,3 +5,5 @@
 # made /branch1
 
 # added line in master branch
+
+# added another line in /branch2
