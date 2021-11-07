@@ -6,4 +6,4 @@
 
 # added line in master branch
 
-# added another line in /branch2
+# added another lin in /branch2
