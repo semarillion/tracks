@@ -26,7 +26,7 @@ series2 = np.array([[1, 0],
                     [6, 1],
                     [7, 0]], dtype=np.double)
 
-#series3 = series2*1.2+0.5
+
 series3 = series1+0.1
 series3 = np.vstack([series3,[9,0.5]])
 
@@ -38,7 +38,7 @@ dtw_distance_12_n = round(dtw_distance_12/(len(series1)+len(series2)),4)
 dtw_distance_13_n = round(dtw_distance_13/(len(series1)+len(series3)),4)
 dtw_distance_23_n = round(dtw_distance_23/(len(series2)+len(series3)),4)
 
-#dtw_distance_affinity,dtw_matrix_affinity = dtw_ndim.warping_paths_affinity(series1,series2)
+
 
 plt.figure()
 plt.plot(series1[:,0],series1[:,1],c='b',label='series1')
