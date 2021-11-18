@@ -314,7 +314,7 @@ for i in range(0, N0_TRACKS):
     print((start, end))                             # output value in console
     range_dict.update({i: range(start, end)})       # update dictionary: now with start and end
 
-    # now defie the bins: each range of the bin is equal to the range of the individial track
+    # now defie the bins: each range of the bin is equal to the range of the individual track
     bins.append(end)
 
     # now set the new index for each track according to calculated start and end, because this data frame
@@ -343,7 +343,6 @@ plt.legend(loc='upper left', markerscale=6)
 plt.show()
 
 N0_TRACKS_TO_BE_DISPLAYES=0
-print('start looking for overlapping sections...')
 for tr in range(N0_TRACKS,1,-1):
     print('looking for multiple of',tr,'overlapping')
 
@@ -363,17 +362,16 @@ for tr in range(N0_TRACKS,1,-1):
     cols = nbrs_pd.columns
 
     # now go over all the columns
-    for col in list(cols)
+    for col in list(cols):
         # extract the way points to bins according the range where a specific way point is located
         nbrs_pd['tr'+str(col)] = pd.cut(x=nbrs_pd[col], bins=bins, labels=list(range(N0_TRACKS)), right=False)
-    print(nbrs_pd)
+    #print(nbrs_pd)
 
-    # now iterate over the entire table, starting from the top
+    # now iterate over the entire table, starting from the top and check whether a valid combination of
+    # way points have been detected
     for idx in nbrs_pd.index:
         # ..and extract the detected ranges of the tracks to an nd array
         t=np.array(nbrs_pd.loc[idx,'tr0':])
-
-        print(t)
 
         # now count the bins
         a = np.bincount(t)
@@ -391,9 +389,6 @@ for tr in range(N0_TRACKS,1,-1):
             comm_a.append(0)
     # copy the results of the common analysis into new data frame
     nbrs_pd['common'] = comm_a
-
-    #print('np',comm_)
-    #print('np_better',comm_a)
 
     # and filter for members where plausible neighbors were found
     nbrs_common = nbrs_pd[nbrs_pd['common'] == 1]
@@ -422,8 +417,8 @@ for tr in range(N0_TRACKS,1,-1):
     X=X_new.copy()                                      # x_new contains the opoen points to be analyzed
     LEN_ALL_POINTS = len(X)                             # and calculate the new lenght of the way point arraay
 
-common_points_dict.update({1:X})     # nearest neighbor with single points not possible, hence
-                                # need to copy at the end of the loop
+common_points_dict.update({1:X})    # nearest neighbor with single points not possible, hence
+                                    # need to copy at the end of the loop
 N0_TRACKS_TO_BE_DISPLAYES+=1
 
 

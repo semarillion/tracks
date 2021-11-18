@@ -1,6 +1,10 @@
 import math
+import os
+import numpy as np
 
 # constants
+import pandas as pd
+
 R = 6373.0
 
 def f_CalcAngleDeg(point_1,point_2):
@@ -123,8 +127,21 @@ def f_FindValuesCloseToMultiple(list_of_disctances, multiple_of):
 
     return Match_l   # return the list of numbers which are close the the multiple
 
+def f_makeQuadrant(X,bins):
+    X.set_axis(['lat', 'lon'], axis=1, inplace=True)
+    lat_min = X[:,0].min()
+    lat_max = X[:,0].max()
+    lon_min = X[:,1].min()
+    lon_max = X[:,1].max()
+    pass
+
+
 
 
 if __name__ == '__main__':
     #print(f_CalcAngleDeg((0,0),(1,1)))
-    print(f_CalWpDistance((10.055605, 48.835271),(10.056681, 48.835347)))
+    #print(f_CalWpDistance((10.055605, 48.835271),(10.056681, 48.835347)))
+    os.chdir("C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\overlap")
+    X= np.genfromtxt('X.csv',delimiter=',')
+    bins = [0, 251, 860, 1598, 1996, 2576, 3063, 3648, 3974, 4201, 4813, 5445, 5778, 6178]
+    #f_makeQuadrant(X,bins)
