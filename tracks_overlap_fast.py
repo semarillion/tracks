@@ -61,6 +61,7 @@ lat_lon_pd = pd.DataFrame(columns=[])
 
 SPEED_THRESH = 2                            # filter for speed
 DISTANCE = 100                              # distance between way points (to reduce the data)
+NS = 1000000000
 
 # store the intermediate results in lists
 lat = []
@@ -308,6 +309,7 @@ LEN_ALL_POINTS = len(X)
 # the output is e.g.  {0: range(0, 256), 1: range(256, 541), 2: range(541, 836), 3: range(836, 1108)}
 # first track as a range from 0...255, the second track a range of 256..541, etc.
 print('starting range check...')
+t_start_range_check = time.monotonic_ns()
 for i in range(0, N0_TRACKS):
     start = sum(NO_LEN_TRACKS_WITH_0[0:i + 1])      # calculate the start address
     end = sum(NO_LEN_TRACKS_WITH_0[1:i + 2])        # and end address
@@ -324,7 +326,8 @@ range_dict_inv = dict((v,k) for k,v in range_dict.items())
 
 # complete first bin, starting from 0
 bins.insert(0,0)
-print('range check completed')
+t_end_range_check = time.monotonic_ns()
+print('range check completion took',(t_end_range_check-t_start_range_check)/NS,'s')
 
 # ------------------------------------------ 'plot original tracks ----------------------------------------------------
 color_map = discrete_cmap(len(lat_all), 'jet')
@@ -343,9 +346,11 @@ plt.legend(loc='upper left', markerscale=6)
 plt.show()
 
 N0_TRACKS_TO_BE_DISPLAYES=0
-print('\tstart nearest neighbour analysis...',end='')
+print('\tstart nearest neighbour analysis...')
+t_start_knn_analysis = time.monotonic_ns()
 for tr in range(N0_TRACKS,1,-1):
-    print('looking for multiple of',tr,'overlapping')
+    t_start_ovl = time.monotonic_ns()
+    print('\t\tlooking for multiple of',tr,'overlapping',end='')
 
     # do the "nearest neighbor" analysis with all way points of all tracks (stacked)
     # depending on how many tracks need to be compared
@@ -417,13 +422,15 @@ for tr in range(N0_TRACKS,1,-1):
     index_to_be_deleted=[]                              # clear list for next loop
     X=X_new.copy()                                      # x_new contains the opoen points to be analyzed
     LEN_ALL_POINTS = len(X)                             # and calculate the new lenght of the way point arraay
+    t_end_ovl = time.monotonic_ns()
+    print('..',(t_end_ovl-t_start_ovl)/NS,'s')
 
 common_points_dict.update({1:X})    # nearest neighbor with single points not possible, hence
                                     # need to copy at the end of the loop
 N0_TRACKS_TO_BE_DISPLAYES+=1
 
-
-print('nearest neighbor analysis completed')
+t_end_knn_analysis = time.monotonic_ns()
+print('\nnearest neighbor analysis completion took',(t_end_knn_analysis-t_start_knn_analysis)/1000000000,'s')
 
 # ---------------------------------------- 'common sections' --------------------------------------------------------
 plt.figure(3)
