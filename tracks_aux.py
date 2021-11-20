@@ -162,7 +162,6 @@ def f_makeQuadrant(X,bins):
 
     pass
 
-
 if __name__ == '__main__':
     #print(f_CalcAngleDeg((0,0),(1,1)))
     #print(f_CalWpDistance((10.055605, 48.835271),(10.056681, 48.835347)))
