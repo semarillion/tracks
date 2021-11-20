@@ -309,7 +309,6 @@ LEN_ALL_POINTS = len(X)
 # the output is e.g.  {0: range(0, 256), 1: range(256, 541), 2: range(541, 836), 3: range(836, 1108)}
 # first track as a range from 0...255, the second track a range of 256..541, etc.
 print('starting range check...')
-t_start_range_check = time.monotonic_ns()
 for i in range(0, N0_TRACKS):
     start = sum(NO_LEN_TRACKS_WITH_0[0:i + 1])      # calculate the start address
     end = sum(NO_LEN_TRACKS_WITH_0[1:i + 2])        # and end address
@@ -326,8 +325,7 @@ range_dict_inv = dict((v,k) for k,v in range_dict.items())
 
 # complete first bin, starting from 0
 bins.insert(0,0)
-t_end_range_check = time.monotonic_ns()
-print('range check completion took',(t_end_range_check-t_start_range_check)/NS,'s')
+print('range check completed')
 
 # ------------------------------------------ 'plot original tracks ----------------------------------------------------
 color_map = discrete_cmap(len(lat_all), 'jet')
