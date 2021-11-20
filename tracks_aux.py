@@ -1,6 +1,7 @@
 import math
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 
 # constants
 import pandas as pd
@@ -128,11 +129,37 @@ def f_FindValuesCloseToMultiple(list_of_disctances, multiple_of):
     return Match_l   # return the list of numbers which are close the the multiple
 
 def f_makeQuadrant(X,bins):
-    X.set_axis(['lat', 'lon'], axis=1, inplace=True)
+    DIM=8
+    cluster=np.array([0,0])
+
+    # calcuate the min and max values out of the tracks
     lat_min = X[:,0].min()
     lat_max = X[:,0].max()
     lon_min = X[:,1].min()
     lon_max = X[:,1].max()
+
+    # calculate the delta assuming an DIM clustering
+    lat_delta = (lat_max-lat_min)/DIM
+    lon_delta = (lon_max-lon_min)/DIM
+
+    # make a list of center points for lat, means, the caluclated point is the center of each quadrant
+    lat_center_cluster = [lat_min+lat_delta*f for f in range(1,DIM,2)]
+    lat_center_cluster.sort(reverse=True)
+
+    # make a list of center points for lon, means, the caluclated point is the center of each quadrant
+    lon_center_cluster = [lon_min+lon_delta*f for f in range(1,DIM,2)]
+
+    # build now from lat and lon the points a center of each qudrant
+    for lat in lat_center_cluster:
+        for lon in lon_center_cluster:
+            newrow = [lon,lat]
+            cluster = np.vstack([cluster,newrow])
+    cluster = np.delete(cluster,axis=0,obj=0)       # first line needs to be deleted because it was introduced to
+                                                    # enable the vstack functions which expects an non-empty array
+                                                    # !!! to be improved !!!
+
+    print(cluster)
+
     pass
 
 
@@ -144,4 +171,4 @@ if __name__ == '__main__':
     os.chdir("C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\overlap")
     X= np.genfromtxt('X.csv',delimiter=',')
     bins = [0, 251, 860, 1598, 1996, 2576, 3063, 3648, 3974, 4201, 4813, 5445, 5778, 6178]
-    #f_makeQuadrant(X,bins)
+    f_makeQuadrant(X,bins)
