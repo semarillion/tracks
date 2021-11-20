@@ -343,6 +343,7 @@ plt.legend(loc='upper left', markerscale=6)
 plt.show()
 
 N0_TRACKS_TO_BE_DISPLAYES=0
+print('\tstart nearest neighbour analysis...',end='')
 for tr in range(N0_TRACKS,1,-1):
     print('looking for multiple of',tr,'overlapping')
 
