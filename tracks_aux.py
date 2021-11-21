@@ -2,6 +2,9 @@ import math
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.spatial import distance_matrix
+
+np.set_printoptions(threshold=sys.maxsize)
 
 # constants
 import pandas as pd
@@ -130,13 +133,14 @@ def f_FindValuesCloseToMultiple(list_of_disctances, multiple_of):
 
 def f_makeQuadrant(X,bins):
     DIM=8
+    cluster_np = np.empty((0, 1))
     cluster=np.array([0,0])
 
     # calcuate the min and max values out of the tracks
-    lat_min = X[:,0].min()
-    lat_max = X[:,0].max()
-    lon_min = X[:,1].min()
-    lon_max = X[:,1].max()
+    lat_min = X[:,1].min()
+    lat_max = X[:,1].max()
+    lon_min = X[:,0].min()
+    lon_max = X[:,0].max()
 
     # calculate the delta assuming an DIM clustering
     lat_delta = (lat_max-lat_min)/DIM
@@ -149,23 +153,32 @@ def f_makeQuadrant(X,bins):
     # make a list of center points for lon, means, the caluclated point is the center of each quadrant
     lon_center_cluster = [lon_min+lon_delta*f for f in range(1,DIM,2)]
 
-    # build now from lat and lon the points a center of each qudrant
+
+    plt.figure()
+    # build now from lat and lon (all combination) the center point of each quadrant
     for lat in lat_center_cluster:
         for lon in lon_center_cluster:
+            plt.scatter(lon,lat,c='b')
             newrow = [lon,lat]
             cluster = np.vstack([cluster,newrow])
     cluster = np.delete(cluster,axis=0,obj=0)       # first line needs to be deleted because it was introduced to
                                                     # enable the vstack functions which expects an non-empty array
                                                     # !!! to be improved !!!
 
-    print(cluster)
+    # iterate now over all lon and lat values
+    for x in X:
+        # In the following we calculate the distance from each waypoint to the centers of all clusters.
+        # The cluster number which has the shortest distance to the waypoint is stored in a numpy array
+        cluster_np = np.append(cluster_np,np.array([[distance_matrix([x],cluster).argmin()]]),axis=0)
 
-    pass
+    # The numpy array of the waypoint is now extended by the information of the corresponding clusters
+    X = np.append(X,cluster_np,axis=1)
+
 
 if __name__ == '__main__':
     #print(f_CalcAngleDeg((0,0),(1,1)))
     #print(f_CalWpDistance((10.055605, 48.835271),(10.056681, 48.835347)))
     os.chdir("C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\overlap")
     X= np.genfromtxt('X.csv',delimiter=',')
-    bins = [0, 251, 860, 1598, 1996, 2576, 3063, 3648, 3974, 4201, 4813, 5445, 5778, 6178]
-    f_makeQuadrant(X,bins)
+    bins = [0, 609, 1347, 1745, 2145]
+    cl=f_makeQuadrant(X,bins)
