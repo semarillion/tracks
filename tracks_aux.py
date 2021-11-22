@@ -132,7 +132,11 @@ def f_FindValuesCloseToMultiple(list_of_disctances, multiple_of):
     return Match_l   # return the list of numbers which are close the the multiple
 
 def f_makeQuadrant(X,bins,no_of_Tracks):
-    DIM=8
+    DIM = 8
+    LON = 0
+    LAT = 1
+    CLUSTER = 2
+    TRACK = 3
     cluster_np = np.empty((0, 1))
     cluster=np.array([0,0])
     tracks=[]
@@ -172,8 +176,6 @@ def f_makeQuadrant(X,bins,no_of_Tracks):
     plt.yticks((y_ticks))
     plt.show()
 
-
-
     cluster = np.delete(cluster,axis=0,obj=0)       # first line needs to be deleted because it was introduced to
                                                     # enable the vstack functions which expects an non-empty array
                                                     # !!! to be improved !!!
@@ -200,11 +202,12 @@ def f_makeQuadrant(X,bins,no_of_Tracks):
     X = np.c_[X,tracks_np]
 
     for cl in range(0,DIM*2):
-        X_cl = X[X[:,2]==cl]
-        print(X_cl)
+        X_cl = X[X[:,CLUSTER]==cl]
+        unique_values,indices_list, occurance_count = np.unique(X_cl[:,TRACK],return_counts=True, return_index=True)
+        print(X_cl,cl,unique_values)
 
 
-
+    return X
 
 if __name__ == '__main__':
     #print(f_CalcAngleDeg((0,0),(1,1)))
