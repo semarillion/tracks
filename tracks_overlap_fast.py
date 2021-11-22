@@ -302,8 +302,7 @@ lat_lon_pd['lon']=sum_lon
 
 # make the initial stacked array which helds all values for lat an long
 X = np.c_[sum_lat, sum_lon]
-X_all = np.c_[sum_lon,sum_lat]
-#np.savetxt('X.csv',X_all,delimiter=',')
+X_all = X.copy()
 LEN_ALL_POINTS = len(X)
 
 # make dictionary of ranges for each track, because they are her available in one list
