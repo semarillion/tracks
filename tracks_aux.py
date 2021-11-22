@@ -131,7 +131,7 @@ def f_FindValuesCloseToMultiple(list_of_disctances, multiple_of):
 
     return Match_l   # return the list of numbers which are close the the multiple
 
-def f_makeQuadrant(X,bins):
+def f_makeQuadrant(X,bins,no_of_Tracks):
     DIM=8
     cluster_np = np.empty((0, 1))
     cluster=np.array([0,0])
@@ -154,14 +154,23 @@ def f_makeQuadrant(X,bins):
     # make a list of center points for lon, means, the caluclated point is the center of each quadrant
     lon_center_cluster = [lon_min+lon_delta*f for f in range(1,DIM,2)]
 
-
+    # plot the center of cluster
     plt.figure()
-    # build now from lat and lon (all combination) the center point of each quadrant
     for lat in lat_center_cluster:
         for lon in lon_center_cluster:
             plt.scatter(lon,lat,c='b')
             newrow = [lon,lat]
             cluster = np.vstack([cluster,newrow])
+
+    # plot all tracks with grid
+    plt.scatter(X[:, 0], X[:, 1], c='r',linewidths=0.01)
+    plt.grid(visible=True,which='both')
+    x_ticks = [lon_min+lon_delta*f for f in range(0,DIM+1)]
+    y_ticks = [lat_min+lat_delta*f for f in range(0,DIM+1)]
+    plt.xticks(x_ticks)
+    plt.yticks((y_ticks))
+    plt.show()
+
     cluster = np.delete(cluster,axis=0,obj=0)       # first line needs to be deleted because it was introduced to
                                                     # enable the vstack functions which expects an non-empty array
                                                     # !!! to be improved !!!
@@ -187,12 +196,18 @@ def f_makeQuadrant(X,bins):
     # now add the track information to the existing numpy array
     X = np.c_[X,tracks_np]
 
+    return X
+
+
 
 
 if __name__ == '__main__':
     #print(f_CalcAngleDeg((0,0),(1,1)))
     #print(f_CalWpDistance((10.055605, 48.835271),(10.056681, 48.835347)))
+
+    # check f_makeQuadrant(X,bins,no_of_Tracks)
     os.chdir("C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\overlap")
     X= np.genfromtxt('X.csv',delimiter=',')
+    N0_TRACKS = 4
     bins = [0, 609, 1347, 1745, 2145]
-    cl=f_makeQuadrant(X,bins)
+    X=f_makeQuadrant(X,bins,no_of_Tracks=N0_TRACKS)
