@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import distance_matrix
 
-np.set_printoptions(threshold=sys.maxsize)
+#np.set_printoptions(threshold=sys.maxsize)
 
 # constants
 import pandas as pd
@@ -135,6 +135,7 @@ def f_makeQuadrant(X,bins):
     DIM=8
     cluster_np = np.empty((0, 1))
     cluster=np.array([0,0])
+    tracks=[]
 
     # calcuate the min and max values out of the tracks
     lat_min = X[:,1].min()
@@ -173,6 +174,19 @@ def f_makeQuadrant(X,bins):
 
     # The numpy array of the waypoint is now extended by the information of the corresponding clusters
     X = np.append(X,cluster_np,axis=1)
+
+    # The list that is created now contains an indicator that shows which track each point belongs to.
+    # This is then added to the numpy array X.
+    for i in range(1, len(bins)):
+        no_wp = bins[i] - bins[i - 1]
+        tracks += [i - 1] * no_wp
+
+    # convert the list to 2d numpy array
+    tracks_np = np.array(tracks).reshape(len(tracks),1)
+
+    # now add the track information to the existing numpy array
+    X = np.c_[X,tracks_np]
+
 
 
 if __name__ == '__main__':
