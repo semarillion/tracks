@@ -212,10 +212,6 @@ def f_makeQuadrant(X,bins):
     plt.yticks((y_ticks))
     plt.show()
 
-    #cluster = np.delete(cluster,axis=0,obj=0)       # first line needs to be deleted because it was introduced to
-                                                    # enable the vstack functions which expects an non-empty array
-                                                    # !!! to be improved !!!
-
     # In the following we calculate the distance from each waypoint to the centers of all clusters.
     # The cluster number which has the shortest distance to the waypoint is stored in a numpy array
     for x in X:
@@ -234,16 +230,16 @@ def f_makeQuadrant(X,bins):
     tracks_np = np.array(tracks).reshape(len(tracks),1)
     # now add the track information to the existing numpy array
     X = np.c_[X,tracks_np]
-    #print(X)
 
     # now swap the columns again before returning the
     X = np.c_[X[:, 1], X[:, 0], X[:,2], X[:,3]]
 
+    # now, iterate of the clusters and it's points and identfy the points which are closest to that particular
+    # cluster. Then return value contains: dict key with cluster information, points of all tracks which are
+    # located in this cluster and the number of different track points
     for cl in range(0,DIM*2):
         X_cl = X[X[:,CLUSTER]==cl]
-        #print(X_cl,'\n')
         unique_values,indices_list, occurance_count = np.unique(X_cl[:,TRACK],return_counts=True, return_index=True)
-        #print(unique_values,'\n\n')
         dict_cl.update({cl:(X_cl,len(unique_values))})
     return dict_cl
 

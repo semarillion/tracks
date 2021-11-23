@@ -290,10 +290,6 @@ for i in range(N0_TRACKS):                                      # interate over 
     sum_lon += (lon_red_all[i])                                 # and longitudinal data
     sum_distance_from_start+=(distance_from_start_red_all[i])   # and distance from start at each point
 
-
-
-# define some constants for later calculation
-#LEN_ALL_POINTS = len(sum_lat)
 NO_LEN_TRACKS_WITH_0 = NO_LEN_TRACKS.copy()     # calculate the number of tracks and the length of each track
 NO_LEN_TRACKS_WITH_0.insert(0, 0)               # insert 0 for later calculation
 MIN_LEN_TRACK = min(NO_LEN_TRACKS)              # number of way points of shortest track
@@ -346,9 +342,9 @@ plt.legend(loc='upper left', markerscale=6)
 plt.show()
 
 N0_TRACKS_TO_BE_DISPLAYES=0
-#X_befor=X.copy()
+
+
 returnvalue = tracks_aux.f_makeQuadrant(X,bins=bins)
-X_after = X.copy()
 
 
 print('\tstart nearest neighbour analysis...')
