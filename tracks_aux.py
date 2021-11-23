@@ -148,15 +148,17 @@ def f_makeQuadrant(X,bins,no_of_Tracks):
     found in this cluster
     :rtype: dictionary
     """
+
+    # define some constants and variables
     DIM = 8
     LON = 0
     LAT = 1
     CLUSTER = 2
     TRACK = 3
     cluster_np = np.empty((0, 1))
-    cluster=np.array([0,0])
+    cluster = np.array([0,0])
     tracks=[]
-    dict_cl={}
+    dict_cl={} # return variable of this function
 
     # calcuate the min and max values out of the tracks
     lat_min = X[:,1].min()
@@ -177,15 +179,21 @@ def f_makeQuadrant(X,bins,no_of_Tracks):
 
 
     plt.figure()
-    # build now from lat and lon (all combination) the center point of each quadrant
+    # 1. build now from lat and lon (all combination) the center point of each quadrant and plot the center
+    # of the cluster as a point, add the cluster in numpy array
     for lat in lat_center_cluster:
         for lon in lon_center_cluster:
             plt.scatter(lon,lat,c='b')
             newrow = [lon,lat]
             cluster = np.vstack([cluster,newrow])
+    cluster = np.delete(cluster,axis=0,obj=0)       # first line needs to be deleted because it was introduced to
+                                                    # enable the vstack functions which expects an non-empty array
+                                                    # !!! to be improved !!!
 
-
+    # 2. plot now the tracks
     plt.scatter(X[:, 0], X[:, 1], c='r',linewidths=0.01)
+
+    # 3. turn on grid and apply for better visualization x- and y ticks based on quadrant size
     plt.grid(visible=True,which='both')
     x_ticks = [lon_min+lon_delta*f for f in range(0,DIM+1)]
     y_ticks = [lat_min+lat_delta*f for f in range(0,DIM+1)]
@@ -197,10 +205,9 @@ def f_makeQuadrant(X,bins,no_of_Tracks):
                                                     # enable the vstack functions which expects an non-empty array
                                                     # !!! to be improved !!!
 
-    # iterate now over all lon and lat values
+    # In the following we calculate the distance from each waypoint to the centers of all clusters.
+    # The cluster number which has the shortest distance to the waypoint is stored in a numpy array
     for x in X:
-        # In the following we calculate the distance from each waypoint to the centers of all clusters.
-        # The cluster number which has the shortest distance to the waypoint is stored in a numpy array
         cluster_np = np.append(cluster_np,np.array([[distance_matrix([x],cluster).argmin()]]),axis=0)
 
     # The numpy array of the waypoint is now extended by the information of the corresponding clusters
