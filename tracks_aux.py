@@ -132,6 +132,22 @@ def f_FindValuesCloseToMultiple(list_of_disctances, multiple_of):
     return Match_l   # return the list of numbers which are close the the multiple
 
 def f_makeQuadrant(X,bins,no_of_Tracks):
+    """ This function takes over all way points as numpy array. Based on the extensions of the tracks
+    (max/min points in lat and long) DIM clusters are generated. Then it is checked which points of all
+    tracks are in a cluster and which distances these points belong to. It then returns a tuple which has
+    the number of the cluster being studied, the waypoints in that cluster and the number of how many
+    different tracks have waypoint in that cluster.
+
+    :param X: input (all way point off all tracks
+    :type X: numpy array
+    :param bins: ranges (low many way points has each track
+    :type bins: list
+    :param no_of_Tracks: number of tracks to be analyzed
+    :type no_of_Tracks: constant
+    :return: investigated cluster, tuple with way points machtching with this cluser and number differenct tracks
+    found in this cluster
+    :rtype: dictionary
+    """
     DIM = 8
     LON = 0
     LAT = 1
@@ -140,6 +156,7 @@ def f_makeQuadrant(X,bins,no_of_Tracks):
     cluster_np = np.empty((0, 1))
     cluster=np.array([0,0])
     tracks=[]
+    dict_cl={}
 
     # calcuate the min and max values out of the tracks
     lat_min = X[:,1].min()
@@ -204,10 +221,9 @@ def f_makeQuadrant(X,bins,no_of_Tracks):
     for cl in range(0,DIM*2):
         X_cl = X[X[:,CLUSTER]==cl]
         unique_values,indices_list, occurance_count = np.unique(X_cl[:,TRACK],return_counts=True, return_index=True)
-        print(X_cl,cl,unique_values)
-
-
-    return X
+        #print(unique_values,'\n\n')
+        dict_cl.update({cl:(X_cl,len(unique_values))})
+    return dict_cl
 
 if __name__ == '__main__':
     #print(f_CalcAngleDeg((0,0),(1,1)))
@@ -218,4 +234,4 @@ if __name__ == '__main__':
     X= np.genfromtxt('X.csv',delimiter=',')
     N0_TRACKS = 4
     bins = [0, 609, 1347, 1745, 2145]
-    X=f_makeQuadrant(X,bins,no_of_Tracks=N0_TRACKS)
+    ret =f_makeQuadrant(X,bins,no_of_Tracks=N0_TRACKS)
