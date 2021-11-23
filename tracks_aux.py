@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import distance_matrix
 
-#np.set_printoptions(threshold=sys.maxsize)
+np.set_printoptions(threshold=sys.maxsize)
 
 # constants
 import pandas as pd
@@ -131,7 +131,7 @@ def f_FindValuesCloseToMultiple(list_of_disctances, multiple_of):
 
     return Match_l   # return the list of numbers which are close the the multiple
 
-def f_makeQuadrant(X,bins):
+def f_makeQuadrant(X,bins,no_of_Tracks):
     """ This function takes over all way points as numpy array. Based on the extensions of the tracks
     (max/min points in lat and long) DIM clusters are generated. Then it is checked which points of all
     tracks are in a cluster and which distances these points belong to. It then returns a tuple which has
@@ -181,15 +181,18 @@ def f_makeQuadrant(X,bins):
     lon_center_cluster = [lon_min+lon_delta*f for f in range(1,DIM,2)]
 
 
-    plt.figure(5)
+    plt.figure()
     plt.title('tracks in cluster array')
     # 1. build now from lat and lon (all combination) the center point of each quadrant and plot the center
     # of the cluster as a point, add the cluster in numpy array
+    i=0
     for lat in lat_center_cluster:
         for lon in lon_center_cluster:
             plt.scatter(lon,lat,c='b')
+            plt.text(lon,lat,i)
             newrow = [lon,lat]
             cluster = np.vstack([cluster,newrow])
+            i+=1
     cluster = np.delete(cluster,axis=0,obj=0)       # first line needs to be deleted because it was introduced to
                                                     # enable the vstack functions which expects an non-empty array
                                                     # !!! to be improved !!!
@@ -198,7 +201,7 @@ def f_makeQuadrant(X,bins):
     for i in range(0,len(bins)-1):
         low=bins[i]
         up = bins[i+1]
-        plt.scatter(X[low:up,0],X[low:up,1],c=cols_dict[i],s=2)
+        plt.scatter(X[low:up,0],X[low:up,1],c=cols_dict[i])
 
     # 3. turn on grid and apply for better visualization x- and y ticks based on quadrant size
     plt.grid(visible=True,which='both')
@@ -208,7 +211,7 @@ def f_makeQuadrant(X,bins):
     plt.yticks((y_ticks))
     plt.show()
 
-    cluster = np.delete(cluster,axis=0,obj=0)       # first line needs to be deleted because it was introduced to
+    #cluster = np.delete(cluster,axis=0,obj=0)       # first line needs to be deleted because it was introduced to
                                                     # enable the vstack functions which expects an non-empty array
                                                     # !!! to be improved !!!
 
@@ -228,12 +231,16 @@ def f_makeQuadrant(X,bins):
 
     # convert the list to 2d numpy array
     tracks_np = np.array(tracks).reshape(len(tracks),1)
-
     # now add the track information to the existing numpy array
     X = np.c_[X,tracks_np]
+    #print(X)
+
+    X = np.c_[X[:, 1], X[:, 0], X[:,2], X[:,3]]
+    print(X)
 
     for cl in range(0,DIM*2):
         X_cl = X[X[:,CLUSTER]==cl]
+        #print(X_cl,'\n')
         unique_values,indices_list, occurance_count = np.unique(X_cl[:,TRACK],return_counts=True, return_index=True)
         #print(unique_values,'\n\n')
         dict_cl.update({cl:(X_cl,len(unique_values))})
@@ -248,4 +255,4 @@ if __name__ == '__main__':
     X= np.genfromtxt('X_.csv',delimiter=',')
     N0_TRACKS = 4
     bins = [0, 609, 1347, 1745, 2145]
-    ret =f_makeQuadrant(X,bins)
+    ret =f_makeQuadrant(X,bins,no_of_Tracks=N0_TRACKS)
