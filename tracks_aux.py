@@ -159,6 +159,8 @@ def f_makeQuadrant(X,bins,no_of_Tracks):
     cluster = np.array([0,0])
     tracks=[]
     dict_cl={} # return variable of this function
+    cols_dict = {0: 'blue', 1: 'orange', 2: 'green', 3: 'red', 4: 'purple', 5: 'brown',
+                 6: 'pink', 7: 'olive', 8: 'cyan', 10: 'black', 9: 'magenta'}
 
     # calcuate the min and max values out of the tracks
     lat_min = X[:,1].min()
@@ -190,8 +192,11 @@ def f_makeQuadrant(X,bins,no_of_Tracks):
                                                     # enable the vstack functions which expects an non-empty array
                                                     # !!! to be improved !!!
 
-    # 2. plot now the tracks
-    plt.scatter(X[:, 0], X[:, 1], c='r',linewidths=0.01)
+    # 2. plot now the tracks, each track with a different color
+    for i in range(0,len(bins)-1):
+        low=bins[i]
+        up = bins[i+1]
+        plt.scatter(X[low:up,0],X[low:up,1],c=cols_dict[i])
 
     # 3. turn on grid and apply for better visualization x- and y ticks based on quadrant size
     plt.grid(visible=True,which='both')
