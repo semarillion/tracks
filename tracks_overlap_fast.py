@@ -8,6 +8,8 @@ import os
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 import matplotlib.pyplot as plt
+
+import tracks_aux
 import tracks_aux as t_aux
 import sys
 from itertools import permutations
@@ -344,6 +346,11 @@ plt.legend(loc='upper left', markerscale=6)
 plt.show()
 
 N0_TRACKS_TO_BE_DISPLAYES=0
+#X_befor=X.copy()
+returnvalue = tracks_aux.f_makeQuadrant(X,bins=bins)
+X_after = X.copy()
+
+
 print('\tstart nearest neighbour analysis...')
 t_start_knn_analysis = time.monotonic_ns()
 for tr in range(N0_TRACKS,1,-1):
