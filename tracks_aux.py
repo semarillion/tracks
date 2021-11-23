@@ -160,6 +160,9 @@ def f_makeQuadrant(X,bins):
     cols_dict = {0: 'blue', 1: 'orange', 2: 'green', 3: 'red', 4: 'purple', 5: 'brown',
                  6: 'pink', 7: 'olive', 8: 'cyan', 10: 'black', 9: 'magenta'}
 
+    X = np.c_[X[:, 1], X[:, 0]] # swap columns - the format delivered in this fuction is lat/long, this function
+                                # her is dealing with lon/lat
+
     # calcuate the min and max values out of the tracks
     lat_min = X[:,1].min()
     lat_max = X[:,1].max()
@@ -242,7 +245,7 @@ if __name__ == '__main__':
 
     # check f_makeQuadrant(X,bins,no_of_Tracks)
     os.chdir("C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\overlap")
-    X= np.genfromtxt('X.csv',delimiter=',')
+    X= np.genfromtxt('X_.csv',delimiter=',')
     N0_TRACKS = 4
     bins = [0, 609, 1347, 1745, 2145]
     ret =f_makeQuadrant(X,bins)
