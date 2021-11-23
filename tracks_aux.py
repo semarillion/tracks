@@ -131,7 +131,7 @@ def f_FindValuesCloseToMultiple(list_of_disctances, multiple_of):
 
     return Match_l   # return the list of numbers which are close the the multiple
 
-def f_makeQuadrant(X,bins,no_of_Tracks):
+def f_makeQuadrant(X,bins):
     """ This function takes over all way points as numpy array. Based on the extensions of the tracks
     (max/min points in lat and long) DIM clusters are generated. Then it is checked which points of all
     tracks are in a cluster and which distances these points belong to. It then returns a tuple which has
@@ -142,8 +142,6 @@ def f_makeQuadrant(X,bins,no_of_Tracks):
     :type X: numpy array
     :param bins: ranges (low many way points has each track
     :type bins: list
-    :param no_of_Tracks: number of tracks to be analyzed
-    :type no_of_Tracks: constant
     :return: investigated cluster, tuple with way points machtching with this cluser and number differenct tracks
     found in this cluster
     :rtype: dictionary
@@ -247,4 +245,4 @@ if __name__ == '__main__':
     X= np.genfromtxt('X.csv',delimiter=',')
     N0_TRACKS = 4
     bins = [0, 609, 1347, 1745, 2145]
-    ret =f_makeQuadrant(X,bins,no_of_Tracks=N0_TRACKS)
+    ret =f_makeQuadrant(X,bins)
