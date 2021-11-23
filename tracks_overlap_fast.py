@@ -344,7 +344,7 @@ plt.show()
 N0_TRACKS_TO_BE_DISPLAYES=0
 
 
-returnvalue = tracks_aux.f_makeQuadrant(X,bins=bins)
+cl_points_no_tracks_dict = tracks_aux.f_makeQuadrant(X,bins=bins)
 
 
 print('\tstart nearest neighbour analysis...')
