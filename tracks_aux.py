@@ -3,8 +3,9 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import distance_matrix
+import sys
 
-np.set_printoptions(threshold=sys.maxsize)
+#np.set_printoptions(threshold=sys.maxsize)
 
 # constants
 import pandas as pd
@@ -131,7 +132,7 @@ def f_FindValuesCloseToMultiple(list_of_disctances, multiple_of):
 
     return Match_l   # return the list of numbers which are close the the multiple
 
-def f_makeQuadrant(X,bins,no_of_Tracks):
+def f_makeQuadrant(X,bins):
     """ This function takes over all way points as numpy array. Based on the extensions of the tracks
     (max/min points in lat and long) DIM clusters are generated. Then it is checked which points of all
     tracks are in a cluster and which distances these points belong to. It then returns a tuple which has
@@ -181,7 +182,7 @@ def f_makeQuadrant(X,bins,no_of_Tracks):
     lon_center_cluster = [lon_min+lon_delta*f for f in range(1,DIM,2)]
 
 
-    plt.figure()
+    plt.figure(5)
     plt.title('tracks in cluster array')
     # 1. build now from lat and lon (all combination) the center point of each quadrant and plot the center
     # of the cluster as a point, add the cluster in numpy array
@@ -201,7 +202,7 @@ def f_makeQuadrant(X,bins,no_of_Tracks):
     for i in range(0,len(bins)-1):
         low=bins[i]
         up = bins[i+1]
-        plt.scatter(X[low:up,0],X[low:up,1],c=cols_dict[i])
+        plt.scatter(X[low:up,0],X[low:up,1],c=cols_dict[i],s=2)
 
     # 3. turn on grid and apply for better visualization x- and y ticks based on quadrant size
     plt.grid(visible=True,which='both')
