@@ -236,8 +236,8 @@ def f_makeQuadrant(X,bins):
     X = np.c_[X,tracks_np]
     #print(X)
 
+    # now swap the columns again before returning the
     X = np.c_[X[:, 1], X[:, 0], X[:,2], X[:,3]]
-    print(X)
 
     for cl in range(0,DIM*2):
         X_cl = X[X[:,CLUSTER]==cl]
