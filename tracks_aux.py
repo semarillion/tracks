@@ -181,6 +181,7 @@ def f_makeQuadrant(X,bins,no_of_Tracks):
 
 
     plt.figure()
+    plt.title('tracks in cluster array')
     # 1. build now from lat and lon (all combination) the center point of each quadrant and plot the center
     # of the cluster as a point, add the cluster in numpy array
     for lat in lat_center_cluster:
