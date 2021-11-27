@@ -12,10 +12,8 @@ import matplotlib.pyplot as plt
 import tracks_aux
 import tracks_aux as t_aux
 import sys
-from itertools import permutations
 import folium
 import time
-from collections import Counter
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -128,7 +126,7 @@ def f_PlausiCheck(nn):
     return ret
 
 
-def f_rangeCheck(nbrs):
+def f__rangeCheck(nbrs):
     ''' extract line by line the way points as list and do a further check within f_PlausiCheck
      @:param: nbrs: result of the nearest neighbor analysis
      @:return: res: a list which indicates if a tuple is plausbible to the detected ranges '''
@@ -301,7 +299,6 @@ lat_lon_pd['lon']=sum_lon
 # make the initial stacked array which helds all values for lat an long
 X = np.c_[sum_lat, sum_lon]
 X_all = X.copy()
-LEN_ALL_POINTS = len(X)
 
 # make dictionary of ranges for each track, because they are her available in one list
 # the output is e.g.  {0: range(0, 256), 1: range(256, 541), 2: range(541, 836), 3: range(836, 1108)}
@@ -341,97 +338,98 @@ for i in range(0, len(lat_all)):
 plt.legend(loc='upper left', markerscale=6)
 plt.show()
 
-N0_TRACKS_TO_BE_DISPLAYES=0
-
 
 cl_points_no_tracks_dict = tracks_aux.f_makeQuadrant(X,bins=bins)
 
+for cl in range(0,len(cl_points_no_tracks_dict)):
+    X = cl_points_no_tracks_dict[cl][0]
+    N0_TRACKS = cl_points_no_tracks_dict[cl][1]
 
-print('\tstart nearest neighbour analysis...')
-t_start_knn_analysis = time.monotonic_ns()
-for tr in range(N0_TRACKS,1,-1):
-    t_start_ovl = time.monotonic_ns()
-    print('\t\tlooking for multiple of',tr,'overlapping',end='')
+    print('\tstart nearest neighbour analysis...')
+    N0_TRACKS_TO_BE_DISPLAYES=0
+    t_start_knn_analysis = time.monotonic_ns()
+    for tr in range(N0_TRACKS,1,-1):
+        t_start_ovl = time.monotonic_ns()
+        print('\t\tlooking for multiple of',tr,'overlapping',end='')
 
-    # do the "nearest neighbor" analysis with all way points of all tracks (stacked)
-    # depending on how many tracks need to be compared
-    # make 2d array with coordinates of ALL tracks (stacked!)
-    # train and fit the model
-    nbrs = NearestNeighbors(n_neighbors=tr, algorithm='ball_tree').fit(X)
+        # do the "nearest neighbor" analysis with all way points of all tracks (stacked)
+        # depending on how many tracks need to be compared
+        # make 2d array with coordinates of ALL tracks (stacked!)
+        # train and fit the model
+        nbrs = NearestNeighbors(n_neighbors=tr, algorithm='ball_tree').fit(X)
 
-    # get the results of the analysis
-    distances, indices = nbrs.kneighbors(X)
+        # get the results of the analysis
+        distances, indices = nbrs.kneighbors(X)
 
-    # and put data of the indices in pandas data frame
-    nbrs_pd = pd.DataFrame(indices)
+        # and put data of the indices in pandas data frame
+        nbrs_pd = pd.DataFrame(indices)
 
-    # columns to iterate
-    cols = nbrs_pd.columns
+        # columns to iterate
+        cols = nbrs_pd.columns
 
-    # now go over all the columns
-    for col in list(cols):
-        # extract the way points to bins according the range where a specific way point is located
-        nbrs_pd['tr'+str(col)] = pd.cut(x=nbrs_pd[col], bins=bins, labels=list(range(N0_TRACKS)), right=False)
-    #print(nbrs_pd)
+        # now go over all the columns
+        for col in list(cols):
+            # extract the way points to bins according the range where a specific way point is located
+            nbrs_pd['tr'+str(col)] = pd.cut(x=nbrs_pd[col], bins=bins, labels=list(range(N0_TRACKS)), right=False)
+        #print(nbrs_pd)
 
-    # now iterate over the entire table, starting from the top and check whether a valid combination of
-    # way points have been detected
-    for idx in nbrs_pd.index:
-        # ..and extract the detected ranges of the tracks to an nd array
-        t=np.array(nbrs_pd.loc[idx,'tr0':])
+        # now iterate over the entire table, starting from the top and check whether a valid combination of
+        # way points have been detected
+        for idx in nbrs_pd.index:
+            # ..and extract the detected ranges of the tracks to an nd array
+            t=np.array(nbrs_pd.loc[idx,'tr0':])
 
-        # now count the bins
-        a = np.bincount(t)
-        # and remove the not needed bins of 0
-        a = a[a>0]
+            # now count the bins
+            a = np.bincount(t)
+            # and remove the not needed bins of 0
+            a = a[a>0]
 
-        # a value is plausible
-        # - if all the ranges appear once
-        # - the way point is clearly identified to which range it belongs
-        if np.all(a == 1) == True:
-            # combination of detected ranges plausible - mark it with 1 for later filtering
-            comm_a.append(1)
-        else:
-            # combination of ranges are not plausible - mark it with 0
-            comm_a.append(0)
-    # copy the results of the common analysis into new data frame
-    nbrs_pd['common'] = comm_a
+            # a value is plausible
+            # - if all the ranges appear once
+            # - the way point is clearly identified to which range it belongs
+            if np.all(a == 1) == True:
+                # combination of detected ranges plausible - mark it with 1 for later filtering
+                comm_a.append(1)
+            else:
+                # combination of ranges are not plausible - mark it with 0
+                comm_a.append(0)
+        # copy the results of the common analysis into new data frame
+        nbrs_pd['common'] = comm_a
 
-    # and filter for members where plausible neighbors were found
-    nbrs_common = nbrs_pd[nbrs_pd['common'] == 1]
-    comm=[]
-    comm_=[]
-    comm_a = []
+        # and filter for members where plausible neighbors were found
+        nbrs_common = nbrs_pd[nbrs_pd['common'] == 1]
+        comm=[]
+        comm_=[]
+        comm_a = []
 
-    nbrs_common=nbrs_common.drop(['common'], axis=1)    # drop the common column because it does not hold any
-                                                        # and store the common point in dictionary
-                                                        # does not belong to the indices in pd
-    for i in nbrs_common.index:                         # iterate now over the nearest neighbor columns
-        temp=(list(nbrs_common.loc[i,:]))               # make a list of the available members
-        index_to_be_deleted+=temp                       # and add them to a list which is used later for deleting
-                                                        # the entries in X (stacked)
-                                                        # and displying the section with overlapping
+        nbrs_common=nbrs_common.drop(['common'], axis=1)    # drop the common column because it does not hold any
+                                                            # and store the common point in dictionary
+                                                            # does not belong to the indices in pd
+        for i in nbrs_common.index:                         # iterate now over the nearest neighbor columns
+            temp=(list(nbrs_common.loc[i,:]))               # make a list of the available members
+            index_to_be_deleted+=temp                       # and add them to a list which is used later for deleting
+                                                            # the entries in X (stacked)
+                                                            # and displying the section with overlapping
 
-        temp=[]                                         # delete the temporary array
-    common_points_dict.update({tr:X[index_to_be_deleted]})   # store the common points in dictionary
+            temp=[]                                         # delete the temporary array
+        common_points_dict.update({tr:X[index_to_be_deleted]})   # store the common points in dictionary
 
-    if len(common_points_dict[tr] > 0):                        # detect how many tracks need to
-        N0_TRACKS_TO_BE_DISPLAYES+=1                    # displayed, where an overlapping was detected
+        if len(common_points_dict[tr] > 0):                        # detect how many tracks need to
+            N0_TRACKS_TO_BE_DISPLAYES+=1                    # displayed, where an overlapping was detected
 
-    X_new=np.delete(X,index_to_be_deleted,axis=0)       # delete the points which are identified multiple points of
-                                                        # of all the tracks
-    index_to_be_deleted=[]                              # clear list for next loop
-    X=X_new.copy()                                      # x_new contains the opoen points to be analyzed
-    LEN_ALL_POINTS = len(X)                             # and calculate the new lenght of the way point arraay
-    t_end_ovl = time.monotonic_ns()
-    print('..',(t_end_ovl-t_start_ovl)/NS,'s')
+        X_new=np.delete(X,index_to_be_deleted,axis=0)       # delete the points which are identified multiple points of
+                                                            # of all the tracks
+        index_to_be_deleted=[]                              # clear list for next loop
+        X=X_new.copy()                                      # x_new contains the opoen points to be analyzed
+        t_end_ovl = time.monotonic_ns()
+        print('..',(t_end_ovl-t_start_ovl)/NS,'s')
 
-common_points_dict.update({1:X})    # nearest neighbor with single points not possible, hence
-                                    # need to copy at the end of the loop
-N0_TRACKS_TO_BE_DISPLAYES+=1
+    common_points_dict.update({1:X})    # nearest neighbor with single points not possible, hence
+                                        # need to copy at the end of the loop
+    N0_TRACKS_TO_BE_DISPLAYES+=1
 
-t_end_knn_analysis = time.monotonic_ns()
-print('\nnearest neighbor analysis completion took',(t_end_knn_analysis-t_start_knn_analysis)/1000000000,'s')
+    t_end_knn_analysis = time.monotonic_ns()
+    print('\nnearest neighbor analysis completion took',(t_end_knn_analysis-t_start_knn_analysis)/1000000000,'s')
 
 # ---------------------------------------- 'common sections' --------------------------------------------------------
 plt.figure(3)
