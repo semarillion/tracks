@@ -212,26 +212,28 @@ def f_makeQuadrant(X,bins):
     plt.yticks((y_ticks))
     plt.show()
 
+    # X: column0 and column1
     # In the following we calculate the distance from each waypoint to the centers of all clusters.
     # The cluster number which has the shortest distance to the waypoint is stored in a numpy array
     for x in X:
         cluster_np = np.append(cluster_np,np.array([[distance_matrix([x],cluster).argmin()]]),axis=0)
 
+    # X: column 2
     # The numpy array of the waypoint is now extended by the information of the corresponding clusters
     X = np.append(X,cluster_np,axis=1)
 
+    # X: column 3
     # The list that is created now contains an indicator that shows which track each point belongs to.
     # This is then added to the numpy array X.
     for i in range(1, len(bins)):
         no_wp = bins[i] - bins[i - 1]
         tracks += [i - 1] * no_wp
-
     # convert the list to 2d numpy array
     tracks_np = np.array(tracks).reshape(len(tracks),1)
     # now add the track information to the existing numpy array
     X = np.c_[X,tracks_np]
 
-    # now swap the columns again before returning the
+    # now swap the columns lat and lon again before returning the numyp array
     X = np.c_[X[:, 1], X[:, 0], X[:,2], X[:,3]]
 
     # now, iterate of the clusters and it's points and identfy the points which are closest to that particular
