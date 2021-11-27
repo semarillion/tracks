@@ -48,6 +48,7 @@ track_const_distance = {}           # ..for data which helds data of contant dis
 track_const_distance_common = {}    # ..data which helds the common part of all tracks after nearest neighbor analysis
 range_dict = {}                     # ..helds the range data for each track
 common_points_dict ={}
+cluster_common_points_dict={}
 
 # define display settings for pandas data frame (all rows and columns shall be displayed
 pd.set_option('display.max_rows', None)
@@ -338,100 +339,91 @@ for i in range(0, len(lat_all)):
 plt.legend(loc='upper left', markerscale=6)
 plt.show()
 
+print('\tstart nearest neighbour analysis...')
+N0_TRACKS_TO_BE_DISPLAYES=0
+t_start_knn_analysis = time.monotonic_ns()
+for tr in range(N0_TRACKS,1,-1):
+    t_start_ovl = time.monotonic_ns()
+    print('\t\tlooking for multiple of',tr,'overlapping',end='')
 
-cl_points_no_tracks_dict = tracks_aux.f_makeQuadrant(X,bins=bins)
+    # do the "nearest neighbor" analysis with all way points of all tracks (stacked)
+    # depending on how many tracks need to be compared
+    # make 2d array with coordinates of ALL tracks (stacked!)
+    # train and fit the model
+    nbrs = NearestNeighbors(n_neighbors=tr, algorithm='ball_tree').fit(X)
 
-for cl in range(0,len(cl_points_no_tracks_dict)):
-    X = cl_points_no_tracks_dict[cl][0]
-    N0_TRACKS = cl_points_no_tracks_dict[cl][1]
+    # get the results of the analysis
+    distances, indices = nbrs.kneighbors(X)
 
-    print('\tstart nearest neighbour analysis...')
-    N0_TRACKS_TO_BE_DISPLAYES=0
-    t_start_knn_analysis = time.monotonic_ns()
-    for tr in range(N0_TRACKS,1,-1):
-        t_start_ovl = time.monotonic_ns()
-        print('\t\tlooking for multiple of',tr,'overlapping',end='')
+    # and put data of the indices in pandas data frame
+    nbrs_pd = pd.DataFrame(indices)
 
-        # do the "nearest neighbor" analysis with all way points of all tracks (stacked)
-        # depending on how many tracks need to be compared
-        # make 2d array with coordinates of ALL tracks (stacked!)
-        # train and fit the model
-        nbrs = NearestNeighbors(n_neighbors=tr, algorithm='ball_tree').fit(X)
+    # columns to iterate
+    cols = nbrs_pd.columns
 
-        # get the results of the analysis
-        distances, indices = nbrs.kneighbors(X)
+    # now go over all the columns
+    for col in list(cols):
+        # extract the way points to bins according the range where a specific way point is located
+        nbrs_pd['tr'+str(col)] = pd.cut(x=nbrs_pd[col], bins=bins, labels=list(range(N0_TRACKS)), right=False)
 
-        # and put data of the indices in pandas data frame
-        nbrs_pd = pd.DataFrame(indices)
+    # now iterate over the entire table, starting from the top and check whether a valid combination of
+    # way points have been detected
+    for idx in nbrs_pd.index:
+        # ..and extract the detected ranges of the tracks to an nd array
+        t=np.array(nbrs_pd.loc[idx,'tr0':])
 
-        # columns to iterate
-        cols = nbrs_pd.columns
+        # now count the bins
+        a = np.bincount(t)
+        # and remove the not needed bins of 0
+        a = a[a>0]
 
-        # now go over all the columns
-        for col in list(cols):
-            # extract the way points to bins according the range where a specific way point is located
-            nbrs_pd['tr'+str(col)] = pd.cut(x=nbrs_pd[col], bins=bins, labels=list(range(N0_TRACKS)), right=False)
-        #print(nbrs_pd)
+        # a value is plausible
+        # - if all the ranges appear once
+        # - the way point is clearly identified to which range it belongs
+        if np.all(a == 1) == True:
+            # combination of detected ranges plausible - mark it with 1 for later filtering
+            comm_a.append(1)
+        else:
+            # combination of ranges are not plausible - mark it with 0
+            comm_a.append(0)
+    # copy the results of the common analysis into new data frame
+    nbrs_pd['common'] = comm_a
 
-        # now iterate over the entire table, starting from the top and check whether a valid combination of
-        # way points have been detected
-        for idx in nbrs_pd.index:
-            # ..and extract the detected ranges of the tracks to an nd array
-            t=np.array(nbrs_pd.loc[idx,'tr0':])
+    # and filter for members where plausible neighbors were found
+    nbrs_common = nbrs_pd[nbrs_pd['common'] == 1]
+    comm=[]
+    comm_=[]
+    comm_a = []
 
-            # now count the bins
-            a = np.bincount(t)
-            # and remove the not needed bins of 0
-            a = a[a>0]
+    nbrs_common=nbrs_common.drop(['common'], axis=1)    # drop the common column because it does not hold any
+                                                        # and store the common point in dictionary
+                                                        # does not belong to the indices in pd
+    for i in nbrs_common.index:                         # iterate now over the nearest neighbor columns
+        temp=(list(nbrs_common.loc[i,:]))               # make a list of the available members
+        index_to_be_deleted+=temp                       # and add them to a list which is used later for deleting
+                                                        # the entries in X (stacked)
+                                                        # and displying the section with overlapping
 
-            # a value is plausible
-            # - if all the ranges appear once
-            # - the way point is clearly identified to which range it belongs
-            if np.all(a == 1) == True:
-                # combination of detected ranges plausible - mark it with 1 for later filtering
-                comm_a.append(1)
-            else:
-                # combination of ranges are not plausible - mark it with 0
-                comm_a.append(0)
-        # copy the results of the common analysis into new data frame
-        nbrs_pd['common'] = comm_a
+        temp=[]                                         # delete the temporary array
+    common_points_dict.update({tr:X[index_to_be_deleted]})   # store the common points in dictionary
 
-        # and filter for members where plausible neighbors were found
-        nbrs_common = nbrs_pd[nbrs_pd['common'] == 1]
-        comm=[]
-        comm_=[]
-        comm_a = []
+    if len(common_points_dict[tr] > 0):                        # detect how many tracks need to
+        N0_TRACKS_TO_BE_DISPLAYES+=1                    # displayed, where an overlapping was detected
 
-        nbrs_common=nbrs_common.drop(['common'], axis=1)    # drop the common column because it does not hold any
-                                                            # and store the common point in dictionary
-                                                            # does not belong to the indices in pd
-        for i in nbrs_common.index:                         # iterate now over the nearest neighbor columns
-            temp=(list(nbrs_common.loc[i,:]))               # make a list of the available members
-            index_to_be_deleted+=temp                       # and add them to a list which is used later for deleting
-                                                            # the entries in X (stacked)
-                                                            # and displying the section with overlapping
+    X_new=np.delete(X,index_to_be_deleted,axis=0)       # delete the points which are identified multiple points of
+                                                        # of all the tracks
+    index_to_be_deleted=[]                              # clear list for next loop
+    X=X_new.copy()                                      # x_new contains the opoen points to be analyzed
+    t_end_ovl = time.monotonic_ns()
+    print('..',(t_end_ovl-t_start_ovl)/NS,'s')
 
-            temp=[]                                         # delete the temporary array
-        common_points_dict.update({tr:X[index_to_be_deleted]})   # store the common points in dictionary
+common_points_dict.update({1:X})    # nearest neighbor with single points not possible, hence
+                                    # need to copy at the end of the loop
+N0_TRACKS_TO_BE_DISPLAYES+=1
+t_end_knn_analysis = time.monotonic_ns()
+print('nearest neighbor analysis completion took',(t_end_knn_analysis-t_start_knn_analysis)/1000000000,'s')
 
-        if len(common_points_dict[tr] > 0):                        # detect how many tracks need to
-            N0_TRACKS_TO_BE_DISPLAYES+=1                    # displayed, where an overlapping was detected
-
-        X_new=np.delete(X,index_to_be_deleted,axis=0)       # delete the points which are identified multiple points of
-                                                            # of all the tracks
-        index_to_be_deleted=[]                              # clear list for next loop
-        X=X_new.copy()                                      # x_new contains the opoen points to be analyzed
-        t_end_ovl = time.monotonic_ns()
-        print('..',(t_end_ovl-t_start_ovl)/NS,'s')
-
-    common_points_dict.update({1:X})    # nearest neighbor with single points not possible, hence
-                                        # need to copy at the end of the loop
-    N0_TRACKS_TO_BE_DISPLAYES+=1
-
-    t_end_knn_analysis = time.monotonic_ns()
-    print('\nnearest neighbor analysis completion took',(t_end_knn_analysis-t_start_knn_analysis)/1000000000,'s')
-
-# ---------------------------------------- 'common sections' --------------------------------------------------------
+#---------------------------------------- 'common sections' --------------------------------------------------------
 plt.figure(3)
 plt.title('common sections')
 plt.ylabel('lateral')

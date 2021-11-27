@@ -246,7 +246,7 @@ def f_makeQuadrant(X,bins):
 
         for a in unique_values:
             bins_cluster.append(bins[int(a)+1])
-            print(bins[int(a)+1],end=',')
+            #print(bins[int(a)+1],end=',')
 
         dict_cl.update({cl:(X_cl,len(unique_values),bins_cluster)})
     return dict_cl
