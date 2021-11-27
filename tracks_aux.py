@@ -233,16 +233,22 @@ def f_makeQuadrant(X,bins):
     # now add the track information to the existing numpy array
     X = np.c_[X,tracks_np]
 
-    # now swap the columns lat and lon again before returning the numyp array
+    # now swap the columns lat and lon again before returning the numpy array
     X = np.c_[X[:, 1], X[:, 0], X[:,2], X[:,3]]
 
     # now, iterate of the clusters and it's points and identfy the points which are closest to that particular
     # cluster. Then return value contains: dict key with cluster information, points of all tracks which are
     # located in this cluster and the number of different track points
     for cl in range(0,DIM*2):
+        bins_cluster=[0]
         X_cl = X[X[:,CLUSTER]==cl]
         unique_values,indices_list, occurance_count = np.unique(X_cl[:,TRACK],return_counts=True, return_index=True)
-        dict_cl.update({cl:(X_cl,len(unique_values))})
+
+        for a in unique_values:
+            bins_cluster.append(bins[int(a)+1])
+            print(bins[int(a)+1],end=',')
+
+        dict_cl.update({cl:(X_cl,len(unique_values),bins_cluster)})
     return dict_cl
 
 if __name__ == '__main__':
