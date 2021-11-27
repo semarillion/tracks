@@ -462,9 +462,6 @@ for section in common_points_dict.keys():
                             radius=0.5,
                             weight=2).add_to(my_map)
     idx_col+=1
-
-
-
 my_map.save("./overlap_tracks.html")
 
 
