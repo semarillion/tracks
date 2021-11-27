@@ -252,4 +252,4 @@ if __name__ == '__main__':
     X= np.genfromtxt('X_.csv',delimiter=',')
     N0_TRACKS = 4
     bins = [0, 609, 1347, 1745, 2145]
-    ret =f_makeQuadrant(X,bins,no_of_Tracks=N0_TRACKS)
+    ret =f_makeQuadrant(X,bins)
