@@ -425,7 +425,7 @@ print('nearest neighbor analysis completion took',(t_end_knn_analysis-t_start_kn
 
 #---------------------------------------- 'common sections' --------------------------------------------------------
 plt.figure(3)
-plt.title('common sections')
+plt.title('common sections - fast algo')
 plt.ylabel('lateral')
 plt.xlabel('longitudinal')
 color_map = discrete_cmap(N0_TRACKS_TO_BE_DISPLAYES, 'jet')
