@@ -348,8 +348,8 @@ for tr in range(N0_TRACKS,1,-1):
     # here, check the individual way points (index based) and check how many overlapping is present. This amount is
     # then stored in a list. Do this for all individual way points
     for c in tr_pd.columns:
-        len_wp_track.append(len(tr_pd.loc[:, c].unique()))
-    nbrs_pd['len_wp_track'] = len_wp_track
+        len_wp_track.append(len(tr_pd.loc[:, c].unique()))  # return how many ranges of tracks are unique
+    nbrs_pd['len_wp_track'] = len_wp_track                  # and store it in pandas data frame
 
     # record end time for ovl analysis and output result to console
     t_end_ovl = time.monotonic_ns()
