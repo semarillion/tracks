@@ -25,31 +25,11 @@ cols_dict = {0: 'blue', 1: 'orange', 2: 'green', 3: 'red', 4: 'purple', 5: 'brow
 color_folium = ['#000000','#210003','#420007','#63000A','#85000D','#A60011','#C70014','#E80017','#FF0A23',
                 '#FF293E','#FF475A','#FF6675','#FF8591','#FFA3AC','#FFC2C8','#FFE0E3']
 
-colors = [
-    'black',
-    'black'
-    'darkpurple',
-    'purple',
-    'darkblue',
-    'blue',
-    'lightblue',
-    'lightgreen',
-    'green',
-    'darkgreen',
-    'beige',
-    'orange',
-    'lightred',
-    'red',
-    'darkred',
-]
 
 # define some dictionary
 track_dict = {}                     # ..for entire data of track
 track_const_distance = {}           # ..for data which helds data of contant distance (DISTANZ) between way points
-track_const_distance_common = {}    # ..data which helds the common part of all tracks after nearest neighbor analysis
 range_dict = {}                     # ..helds the range data for each track
-common_points_dict ={}
-cluster_common_points_dict={}
 
 # define display settings for pandas data frame (all rows and columns shall be displayed
 pd.set_option('display.max_rows', None)
@@ -84,19 +64,9 @@ lat_all = []
 lon_all = []
 elev_all = []
 file_names = []
-matched_points_of_tracks = []
-index_to_be_deleted=[]
 bins = []
-comm = []
-comm_ =[]
-comm_a = []
-angle_bins = []
 len_wp_track = []
-
-# define som contants
 NO_LEN_TRACKS = []
-NO_LEN_TRACKS_COMMON = []
-START_INDEX_COMMON = []
 
 lat_red_all, lon_red_all, dur, elev_red_all, distance_from_start_red_all = [], [], [], [],[]
 
@@ -285,11 +255,10 @@ for i in range(N0_TRACKS):
 
 # now stack all lat, lon and distance from start information of all tracks (reduced points - multiple of DISTANCE)
 # this is indicated by the _red_ name in variables
-sum_lat, sum_lon, sum_distance_from_start = [], [], []          # reset the temporary lists
+sum_lat, sum_lon = [], []      # reset the temporary lists
 for i in range(N0_TRACKS):                                      # interate over all tracks
     sum_lat += (lat_red_all[i])                                 # stack the lateral data
     sum_lon += (lon_red_all[i])                                 # and longitudinal data
-    sum_distance_from_start+=(distance_from_start_red_all[i])   # and distance from start at each point
 
 NO_LEN_TRACKS_WITH_0 = NO_LEN_TRACKS.copy()     # calculate the number of tracks and the length of each track
 NO_LEN_TRACKS_WITH_0.insert(0, 0)               # insert 0 for later calculation
@@ -381,7 +350,6 @@ for tr in range(N0_TRACKS,1,-1):
     for c in tr_pd.columns:
         len_wp_track.append(len(tr_pd.loc[:, c].unique()))
     nbrs_pd['len_wp_track'] = len_wp_track
-
 
     if tr==N0_TRACKS:
         break

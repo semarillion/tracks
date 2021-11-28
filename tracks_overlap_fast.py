@@ -48,7 +48,6 @@ track_const_distance = {}           # ..for data which helds data of contant dis
 track_const_distance_common = {}    # ..data which helds the common part of all tracks after nearest neighbor analysis
 range_dict = {}                     # ..helds the range data for each track
 common_points_dict ={}
-cluster_common_points_dict={}
 
 # define display settings for pandas data frame (all rows and columns shall be displayed
 pd.set_option('display.max_rows', None)
