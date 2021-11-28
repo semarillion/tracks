@@ -39,7 +39,6 @@ pd.set_option('display.width', 1000)
 # pandas dataframe for storing all lists
 tmp_df = pd.DataFrame(columns=[])           # helper data frame
 nbrs_pd = pd.DataFrame(columns=[])          # nearest neighbor information
-lat_lon_pd = pd.DataFrame(columns=[])
 
 SPEED_THRESH = 2                            # filter for speed
 DISTANCE = 100                              # distance between way points (to reduce the data)
@@ -262,11 +261,6 @@ for i in range(N0_TRACKS):                                      # interate over 
 
 NO_LEN_TRACKS_WITH_0 = NO_LEN_TRACKS.copy()     # calculate the number of tracks and the length of each track
 NO_LEN_TRACKS_WITH_0.insert(0, 0)               # insert 0 for later calculation
-MIN_LEN_TRACK = min(NO_LEN_TRACKS)              # number of way points of shortest track
-
-# now copy the stacked lateral as well as longitudinal information in data frame
-lat_lon_pd['lat']=sum_lat
-lat_lon_pd['lon']=sum_lon
 
 # make the initial stacked array which helds all values for lat an long
 X = np.c_[sum_lat, sum_lon]
@@ -307,12 +301,12 @@ for i in range(0, len(lat_all)):
 plt.legend(loc='upper left', markerscale=6)
 plt.show()
 
-print('\tstart nearest neighbour analysis...')
+print('\tstart analysis...')
 N0_TRACKS_TO_BE_DISPLAYES=0
-t_start_knn_analysis = time.monotonic_ns()
+t_start_analysis = time.monotonic_ns()
 for tr in range(N0_TRACKS,1,-1):
-    t_start_ovl = time.monotonic_ns()
-    print('\t\tlooking for multiple of',tr,'overlapping',end='')
+    print('\tNearest neighbour analysis..',end='')
+    t_start_knn = time.monotonic_ns()
 
     # do the "nearest neighbor" analysis with all way points of all tracks (stacked)
     # depending on how many tracks need to be compared
@@ -323,15 +317,19 @@ for tr in range(N0_TRACKS,1,-1):
     # get the results of the analysis
     distances, indices = nbrs.kneighbors(X)
 
+    # record time stamp when completing the knn and output to console
+    t_end_knn = time.monotonic_ns()
+    print('..completed. It took',(t_end_knn-t_start_knn)/NS*1000,'ms')
+
+
+    # start time recording for finding the n-overlapping tracks
+    t_start_ovl = time.monotonic_ns()
+    print('\tfinding n-overlapping of the tracks..',end='')
     # and put data of the indices in pandas data frame
     nbrs_pd = pd.DataFrame(indices)
 
     # columns to iterate
     cols = nbrs_pd.columns
-
-    # record time for doing the knn
-    t_end_ovl = time.monotonic_ns()
-    print('..',(t_end_ovl-t_start_ovl)/NS,'s')
 
     # now go over all the columns
     for col in list(cols):
@@ -351,12 +349,16 @@ for tr in range(N0_TRACKS,1,-1):
         len_wp_track.append(len(tr_pd.loc[:, c].unique()))
     nbrs_pd['len_wp_track'] = len_wp_track
 
+    # record end time for ovl analysis and output result to console
+    t_end_ovl = time.monotonic_ns()
+    print('completed. It took',(t_end_ovl-t_start_ovl)/NS),'s'
+
     if tr==N0_TRACKS:
         break
 
 N0_TRACKS_TO_BE_DISPLAYES = nbrs_pd['len_wp_track'].max()
-t_end_knn_analysis = time.monotonic_ns()
-print('nearest neighbor analysis completion took',(t_end_knn_analysis-t_start_knn_analysis)/1000000000,'s')
+t_end_analysis = time.monotonic_ns()
+print('analysis completion took',(t_end_analysis-t_start_analysis)/NS,'s')
 
 #---------------------------------------- 'common sections' --------------------------------------------------------
 plt.figure(3)
