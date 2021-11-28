@@ -342,9 +342,11 @@ for tr in range(N0_TRACKS,1,-1):
     col_s = ''.join(str(elem) for elem in col_l)
     # then extract the columns with trx only
     tr_l  = re.findall('tr\d{1,2}',col_s)
-    # calculate the transpost matrix (columns -> rows, rows -> columns)
+    # calculate the transpose matrix (columns -> rows, rows -> columns)
     tr_pd = nbrs_pd[tr_l].T
 
+    # here, check the individual way points (index based) and check how many overlapping is present. This amount is
+    # then stored in a list. Do this for all individual way points
     for c in tr_pd.columns:
         len_wp_track.append(len(tr_pd.loc[:, c].unique()))
     nbrs_pd['len_wp_track'] = len_wp_track
@@ -376,9 +378,9 @@ plt.colorbar(ticks=range(N0_TRACKS_TO_BE_DISPLAYES,0,-1))
 plt.show()
 #
 #
-## display multiple section in map
+# display multiple section in map
 #my_map = folium.Map(location=[48.87320775989272, 10.039810323943671], zoom_start=14,tiles='Stamen Terrain')
-#
+
 #idx_col=0
 #for section in common_points_dict.keys():
 #    if len(common_points_dict[section])==0:
