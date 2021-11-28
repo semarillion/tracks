@@ -14,6 +14,7 @@ import tracks_aux as t_aux
 import sys
 import folium
 import time
+import re
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -89,6 +90,7 @@ comm = []
 comm_ =[]
 comm_a = []
 angle_bins = []
+len_wp_track =[]
 
 # define som contants
 NO_LEN_TRACKS = []
@@ -362,6 +364,7 @@ for tr in range(N0_TRACKS,1,-1):
 
     # now go over all the columns
     for col in list(cols):
+        len_wp_track = []
         # extract the way points to bins according the range where a specific way point is located
         nbrs_pd['tr'+str(col)] = pd.cut(x=nbrs_pd[col], bins=bins, labels=list(range(N0_TRACKS)), right=False)
 
