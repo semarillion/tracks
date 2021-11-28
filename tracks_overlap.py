@@ -125,7 +125,8 @@ def discrete_cmap(N, base_cmap=None):
 
 
 # -------------------------------------------------------------- start of the main program ----------------------------
-
+# change working directory
+os.chdir("C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\overlap")
 # make a list of available gpx files in folder
 f_list = [file for file in os.listdir() if '.gpx' in file]
 
