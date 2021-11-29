@@ -312,7 +312,7 @@ for tr in range(N0_TRACKS,1,-1):
     # depending on how many tracks need to be compared
     # make 2d array with coordinates of ALL tracks (stacked!)
     # train and fit the model
-    nbrs = NearestNeighbors(n_neighbors=tr, algorithm='ball_tree').fit(X)
+    nbrs = NearestNeighbors(n_neighbors=tr, algorithm='auto').fit(X)
 
     # get the results of the analysis
     distances, indices = nbrs.kneighbors(X)
