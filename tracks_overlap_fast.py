@@ -338,7 +338,7 @@ for i in range(0, len(lat_all)):
 plt.legend(loc='upper left', markerscale=6)
 plt.show()
 
-print('\tstart nearest neighbour analysis...')
+print('\tstart analysis...')
 N0_TRACKS_TO_BE_DISPLAYES=0
 t_start_knn_analysis = time.monotonic_ns()
 for tr in range(N0_TRACKS,1,-1):
@@ -351,8 +351,17 @@ for tr in range(N0_TRACKS,1,-1):
     # train and fit the model
     nbrs = NearestNeighbors(n_neighbors=tr, algorithm='ball_tree').fit(X)
 
-    # get the results of the analysis
+    # store the distances as well as indices
     distances, indices = nbrs.kneighbors(X)
+    # create array out of indices and sort it column wise - only the order of the values is changed!
+    X_sort = np.sort(np.array(indices), axis=1)
+    # no create an array which helds a mapping of way point no to track
+    tr_np = np.digitize(X_sort, bins)-1
+
+    r,c = np.unique(tr_np[:10, :], axis=1).shape
+    if c!=tr:
+        print('..no overlapping found!')
+        continue
 
     # and put data of the indices in pandas data frame
     nbrs_pd = pd.DataFrame(indices)
@@ -360,6 +369,7 @@ for tr in range(N0_TRACKS,1,-1):
     # columns to iterate
     cols = nbrs_pd.columns
 
+    t_start_bins_eval = time.monotonic_ns()
     # now go over all the columns
     for col in list(cols):
         len_wp_track = []
@@ -388,6 +398,7 @@ for tr in range(N0_TRACKS,1,-1):
             comm_a.append(0)
     # copy the results of the common analysis into new data frame
     nbrs_pd['common'] = comm_a
+    break
 
     # and filter for members where plausible neighbors were found
     nbrs_common = nbrs_pd[nbrs_pd['common'] == 1]
@@ -419,13 +430,14 @@ for tr in range(N0_TRACKS,1,-1):
 
     X=X_new.copy()                                      # x_new contains the opoen points to be analyzed
     t_end_ovl = time.monotonic_ns()
+    print('bin analysis',(t_end_ovl - t_start_bins_eval)/NS,'s')
     print('..',(t_end_ovl-t_start_ovl)/NS,'s')
 
 common_points_dict.update({1:X})    # nearest neighbor with single points not possible, hence
                                     # need to copy at the end of the loop
 N0_TRACKS_TO_BE_DISPLAYES+=1
 t_end_knn_analysis = time.monotonic_ns()
-print('nearest neighbor analysis completion took',(t_end_knn_analysis-t_start_knn_analysis)/1000000000,'s')
+print('\n\nnearest neighbor analysis completion took',(t_end_knn_analysis-t_start_knn_analysis)/1000000000,'s')
 
 #---------------------------------------- 'common sections' --------------------------------------------------------
 plt.figure(3)
