@@ -86,8 +86,6 @@ file_names = []
 matched_points_of_tracks = []
 index_to_be_deleted=[]
 bins = []
-comm = []
-comm_ =[]
 comm_a = []
 angle_bins = []
 len_wp_track =[]
@@ -393,28 +391,32 @@ for tr in range(N0_TRACKS,1,-1):
 
     # and filter for members where plausible neighbors were found
     nbrs_common = nbrs_pd[nbrs_pd['common'] == 1]
-    comm=[]
-    comm_=[]
     comm_a = []
 
-    nbrs_common=nbrs_common.drop(['common'], axis=1)    # drop the common column because it does not hold any
-                                                        # and store the common point in dictionary
-                                                        # does not belong to the indices in pd
+    #index_to_be_deleted_ = np.empty(shape=(1,))
+    #for t_ in range(tr-1,0,-1):
+    #    index_to_be_deleted_ = np.c_[nbrs_common[t_]].flatten()
+    #index_to_be_deleted_ = np.unique(index_to_be_deleted_)
+    #print(index_to_be_deleted_)
+
     for i in nbrs_common.index:                         # iterate now over the nearest neighbor columns
         temp=(list(nbrs_common.loc[i,:]))               # make a list of the available members
         index_to_be_deleted+=temp                       # and add them to a list which is used later for deleting
-                                                        # the entries in X (stacked)
-                                                        # and displying the section with overlapping
-
+                                                       # the entries in X (stacked)
+                                                       # and displying the section with overlapping
         temp=[]                                         # delete the temporary array
+
     common_points_dict.update({tr:X[index_to_be_deleted]})   # store the common points in dictionary
+    #common_points_dict.update({tr: X[index_to_be_deleted_]})  # store the common points in dictionary
 
     if len(common_points_dict[tr] > 0):                        # detect how many tracks need to
         N0_TRACKS_TO_BE_DISPLAYES+=1                    # displayed, where an overlapping was detected
 
-    X_new=np.delete(X,index_to_be_deleted,axis=0)       # delete the points which are identified multiple points of
+    #X_new=np.delete(X,index_to_be_deleted_,axis=0)       # delete the points which are identified multiple points of
+    X_new = np.delete(X, index_to_be_deleted, axis=0)   # delete the points which are identified multiple points of
                                                         # of all the tracks
     index_to_be_deleted=[]                              # clear list for next loop
+
     X=X_new.copy()                                      # x_new contains the opoen points to be analyzed
     t_end_ovl = time.monotonic_ns()
     print('..',(t_end_ovl-t_start_ovl)/NS,'s')
