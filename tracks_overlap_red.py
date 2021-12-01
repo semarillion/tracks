@@ -295,7 +295,7 @@ plt.ylabel('lateral')
 plt.xlabel('longitudinal')
 for i in range(0, len(lat_all)):
     plt.scatter(lon_all[i], lat_all[i],
-                c=cols_dict[i],
+                c=cols_dict[i%10],
                 s=2,
                 label=file_names[i])
 plt.legend(loc='upper left', markerscale=6)
