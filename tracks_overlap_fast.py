@@ -353,15 +353,6 @@ for tr in range(N0_TRACKS,1,-1):
 
     # store the distances as well as indices
     distances, indices = nbrs.kneighbors(X)
-    # create array out of indices and sort it column wise - only the order of the values is changed!
-    X_sort = np.sort(np.array(indices), axis=1)
-    # no create an array which helds a mapping of way point no to track
-    tr_np = np.digitize(X_sort, bins)-1
-
-    r,c = np.unique(tr_np[:10, :], axis=1).shape
-    if c!=tr:
-        print('..no overlapping found!')
-        continue
 
     # and put data of the indices in pandas data frame
     nbrs_pd = pd.DataFrame(indices)
@@ -398,7 +389,6 @@ for tr in range(N0_TRACKS,1,-1):
             comm_a.append(0)
     # copy the results of the common analysis into new data frame
     nbrs_pd['common'] = comm_a
-    break
 
     # and filter for members where plausible neighbors were found
     nbrs_common = nbrs_pd[nbrs_pd['common'] == 1]
