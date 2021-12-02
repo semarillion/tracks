@@ -8,13 +8,11 @@ import os
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 import matplotlib.pyplot as plt
-
-import tracks_aux
 import tracks_aux as t_aux
 import sys
 import folium
 import time
-import re
+import getpass
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -46,7 +44,6 @@ colors = [
 # define some dictionary
 track_dict = {}                     # ..for entire data of track
 track_const_distance = {}           # ..for data which helds data of contant distance (DISTANZ) between way points
-track_const_distance_common = {}    # ..data which helds the common part of all tracks after nearest neighbor analysis
 range_dict = {}                     # ..helds the range data for each track
 common_points_dict ={}
 
@@ -62,7 +59,7 @@ lat_lon_pd = pd.DataFrame(columns=[])
 
 SPEED_THRESH = 2                            # filter for speed
 DISTANCE = 100                              # distance between way points (to reduce the data)
-NS = 1000000000
+S = 1000000000
 MS = 1000000
 US = 1000
 
@@ -70,7 +67,6 @@ US = 1000
 lat = []
 lon = []
 elev = []
-sp = []
 times = []
 speed = []
 points = []
@@ -79,23 +75,13 @@ distance = []
 cum_elevation = []
 speed_filt = []
 dur = []
-time_diff = []
-
 lat_all = []
 lon_all = []
-elev_all = []
 file_names = []
-matched_points_of_tracks = []
-index_to_be_deleted=[]
 bins = []
-comm_a = []
-angle_bins = []
-len_wp_track =[]
 
 # define som contants
 NO_LEN_TRACKS = []
-NO_LEN_TRACKS_COMMON = []
-START_INDEX_COMMON = []
 
 lat_red_all, lon_red_all, dur, elev_red_all, distance_from_start_red_all = [], [], [], [],[]
 
@@ -154,12 +140,27 @@ def discrete_cmap(N, base_cmap=None):
     return base.from_list(cmap_name, color_list, N)
 
 def func(x):
+    """
+    this function the amount of different numbers in array
+    :param x: the nearest neighbours (allocated to tracks)
+    :type x: numpy array
+    :return: amount of how many different tracks are affected by a specific way point
+    :rtype: int
+    """
     return len(np.unique(x))
 
 # -------------------------------------------------------------- start of the main program ----------------------------
 
-# change working directory
-os.chdir("C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\overlap")
+# change working directory depending user
+if getpass.getuser()=='arwe4': # locla computer
+    os.chdir("C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\overlap")
+if getpass.getuser() == "wca1sgm": # account at company
+    pass
+if getpass.getuser()=='u0_a138': # google account tablet
+    pass
+if getpass.getuser()=='u0_a273': # google account mobile
+    pass
+
 # make a list of available gpx files in folder
 f_list = [file for file in os.listdir() if '.gpx' in file]
 
@@ -259,11 +260,10 @@ for no, f in enumerate(f_list): # iterate over the list of gpx files
     # original data of tracks
     lat_all.append(lat)
     lon_all.append(lon)
-    elev_all.append(elev)
 
     # reset all lists for next loop
-    lat, lon, elev, cum_elevation, dur, times, dist_per_point, s, speed_filt, distance, speed, dur_s = \
-        [], [], [], [], [], [], [], [], [], [], [], []
+    lat, lon, elev ,cum_elevation, dur, times, dist_per_point, s, speed_filt, distance, speed, dur_s = \
+        [], [], [], [] ,[], [], [], [], [], [], [], []
     # reset pandas data frame as well as data per track for next loop
     tmp_df = pd.DataFrame(columns=[])
 
@@ -353,15 +353,14 @@ for tr in range(N0_TRACKS,1,-1):
     t_start_knn_analysis = time.monotonic_ns()
     print('\t\t\tstarting knn..',end='')
     nbrs = NearestNeighbors(n_neighbors=tr, algorithm='ball_tree').fit(X)
+    # get the results of the knn analysis
+    distances, indices = nbrs.kneighbors(X)
     t_stop_knn_analysis = time.monotonic_ns()
     print('took',(t_stop_knn_analysis-t_start_knn_analysis),'ns')
 
     # store the distances as well as indices
     print('\t\t\tstart data processing (sort, check, prepare data for next loop..',end='')
     t_start_data_processing = time.monotonic_ns()
-
-    # get the results of the knn analysis
-    distances, indices = nbrs.kneighbors(X)
 
     # create array out of indices
     X_sort = np.array(indices)
@@ -404,7 +403,7 @@ common_points_dict.update({1:X})    # nearest neighbor with single points not po
 
 N0_TRACKS_TO_BE_DISPLAYES = len(common_points_dict.keys())
 t_end_analysis = time.monotonic_ns()
-print('\nTrack analysis:',(t_end_analysis-t_start_analysis)/NS,'s')
+print('\nTrack analysis:', (t_end_analysis-t_start_analysis) / S, 's')
 
 #---------------------------------------- 'common sections' --------------------------------------------------------
 plt.figure(3)
@@ -443,8 +442,8 @@ for section in common_points_dict.keys():
                             fill=True,
                             fill_color=color_folium[idx_col],#colors[section],
                             color=color_folium[idx_col],#colors[section],
-                            radius=0.5,
-                            weight=2).add_to(my_map)
+                            radius=0.5*section,
+                            weight=2*section).add_to(my_map)
     idx_col+=1
 my_map.save("./overlap_tracks.html")
 
