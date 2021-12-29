@@ -155,6 +155,7 @@ def func(x):
 if getpass.getuser()=='arwe4': # locla computer
     os.chdir("C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\overlap")
 if getpass.getuser() == "wca1sgm": # account at company
+    os.chdir("\\gpx")
     pass
 if getpass.getuser()=='u0_a138': # google account tablet
     pass
@@ -327,17 +328,14 @@ bins.insert(0,0)
 print('range check completed')
 
 # ------------------------------------------ 'plot original tracks ----------------------------------------------------
-color_map = discrete_cmap(len(lat_all), 'jet')
 plt.figure(2)
-plt.title('original tracks')
+plt.title('no of tracks: '+str(N0_TRACKS))
 plt.ylabel('lateral')
 plt.xlabel('longitudinal')
 for i in range(0, len(lat_all)):
     plt.scatter(lon_all[i], lat_all[i],
                 c=cols_dict[i%10],
-                s=2,
-                label=file_names[i])
-plt.legend(loc='upper left', markerscale=6)
+                s=2)
 plt.show()
 
 print('\tstart analysis...')
@@ -381,6 +379,7 @@ for tr in range(N0_TRACKS,1,-1):
     # check now whether any overlapping is detected: last column should contain a number equal to tr
     if np.all((X_sort[:,-1]==tr)==False) ==True:
         print('\t->nothing found')
+        #common_points_dict.update({tr:np.array([[]])})
         continue
 
     # The overlapping points from the analysis no longer need to be considered in the next pass,
@@ -407,7 +406,7 @@ print('\nTrack analysis:', (t_end_analysis-t_start_analysis) / S, 's')
 
 #---------------------------------------- 'common sections' --------------------------------------------------------
 plt.figure(3)
-plt.title('common sections - fast2 algo')
+plt.title('common sections - pure numpy algo')
 plt.ylabel('lateral')
 plt.xlabel('longitudinal')
 color_map = discrete_cmap(N0_TRACKS_TO_BE_DISPLAYES, 'jet')
@@ -415,7 +414,6 @@ color_map = discrete_cmap(N0_TRACKS_TO_BE_DISPLAYES, 'jet')
 x=[]
 y=[]
 point_color=[]
-#for i in range(N0_TRACKS_TO_BE_DISPLAYES,0,-1): # no stack all multiple sections and link a color to each point
 for i in list(common_points_dict.keys()):  # no stack all multiple sections and link a color to each point
     x+= common_points_dict[i][:, 1].tolist()
     y+= common_points_dict[i][:, 0].tolist()

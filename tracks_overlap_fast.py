@@ -8,13 +8,10 @@ import os
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 import matplotlib.pyplot as plt
-
-import tracks_aux
 import tracks_aux as t_aux
 import sys
 import folium
 import time
-import re
 
 np.set_printoptions(threshold=sys.maxsize)
 
