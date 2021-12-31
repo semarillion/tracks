@@ -103,7 +103,7 @@ def f_CalculateData(tmp_df):
             delta = (elevation_wp[-1]/dist_wp[-1])*100
             gradient_wp.append( round(delta,2) )
 
-            # calculate the time differnece between two waypoints
+            # calculate the time difference between two waypoints
             h1 = tmp_df.loc[idx, 'times [h/m/s]'].hour
             m1 = tmp_df.loc[idx, 'times [h/m/s]'].minute
             s1 = tmp_df.loc[idx, 'times [h/m/s]'].second
