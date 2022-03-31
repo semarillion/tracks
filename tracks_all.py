@@ -16,11 +16,11 @@ cat_dir_dict = {0:'N',1:'NO',2:'O',3:'SO',4:'S',5:'SW',6:'W',7:'NW'}
 cols_track = ['tr_name',
               'tr_cum_eval',
               'tr_highest_point',
-               'tr_lowest_point',
+              'tr_lowest_point',
               'tr_duration',
               'tr_distance',
               'tr_gradient',
-              'tr_import_dateTime']
+              'tr_import_datetime']
 
 # set display options for pandas data frame
 pd.set_option('display.max_rows', None)
@@ -296,7 +296,7 @@ for no,f in enumerate(diff_track_list):
                'tr_duration':tr_duration,
                'tr_distance':tr_distance,
                'tr_gradient':tr_gradient,
-               'tr_import_dateTime':date_time}
+               'tr_import_datetime':date_time}
 
     # tracks_sum_pd contains the previously read tracks, also from older imports, so new ones are appended to the back
     tracks_sum_pd = tracks_sum_pd.append(new_row, ignore_index=True)
@@ -310,10 +310,13 @@ for no,f in enumerate(diff_track_list):
     # reset pandas data frame as well as data per track for next loop
     tmp_df = pd.DataFrame(columns=[])
 
-# add the newly recorded tracks to entire csv file
-tracks_sum_pd.to_csv(FILE_STATISTICS,index=False)
+# reove the day value in column and convert to string - that works also with later import to postgre
+tracks_sum_pd['tr_duration'] = tracks_sum_pd['tr_duration'].astype(str).map(lambda x:x[7:])
+tracks_to_be_imported_pd['tr_duration'] = tracks_to_be_imported_pd['tr_duration'].astype(str).map(lambda x:x[7:])
+
+# add the newly recorded tracks to entire csv file and include the index as separate column
+tracks_sum_pd.to_csv(FILE_STATISTICS,index=True,index_label='tr_id')
 
 # add the newly recorded tracks from today to own file
-FilenName = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")+'_to_be_imported.csv'
-tracks_to_be_imported_pd.to_csv(FilenName,index=False)
+tracks_to_be_imported_pd.to_csv('tracks_to_be_imported.csv',index=True,index_label='tr_id')
 
