@@ -356,6 +356,7 @@ for tr in range(N0_TRACKS,1,-1):
     t_stop_knn_analysis = time.monotonic_ns()
     print('took',(t_stop_knn_analysis-t_start_knn_analysis),'ns')
 
+
     # store the distances as well as indices
     print('\t\t\tstart data processing (sort, check, prepare data for next loop..',end='')
     t_start_data_processing = time.monotonic_ns()
