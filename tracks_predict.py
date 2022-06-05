@@ -22,7 +22,7 @@ for i,wd in enumerate(wd_l):
         values.rotate(1)
         wd_values_dict.update({wd:list(values)})
 
-df = pd.DataFrame(wd_values_dict,index=wd_l)
+wd_values_pd = pd.DataFrame(wd_values_dict,index=wd_l)
 
 
 

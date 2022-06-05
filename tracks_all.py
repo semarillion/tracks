@@ -166,7 +166,7 @@ for no,f in enumerate(diff_track_list):
     gpx_file = open(f)
     gpx = gpxpy.parse(gpx_file)
 
-    # no iterate over the entire track data and extract multiple information
+    # now iterate over the entire track data and extract multiple information
     for track in gpx.tracks:
         for segment in track.segments:
 
@@ -281,12 +281,11 @@ for no,f in enumerate(diff_track_list):
     tr_highest_point = round((tmp_df['elevation [m]'].max()),2)
     tr_lowest_point = round((tmp_df['elevation [m]'].min()), 2)
     tr_duration = tmp_df.tail(1)['dt_duration [s]'].any()
-    tr_distance = round(float(tmp_df.tail(1)['distance from start [m]']),2)
+    tr_distance = round(float(tmp_df.tail(1)['distance from start [m]'])/1000,2)
     tr_gradient = round(tr_cum_eval/tr_distance*100,2)
-
-    # create the actual date for recording/storing info in cvs file
-    now = datetime.datetime.now()
-    date_time = now.strftime("%Y-%m-%d")
+    tr_max_speed = tmp_df['speed_wp [km/h]'].max()
+    tr_average_speed = (tr_distance/1000)/(tr_duration.seconds/3600)
+    tr_date_time = datetime.datetime.now().strftime("%Y-%m-%d")
 
     # make new row for pandas dataframe with values calculated above
     new_row = {'tr_name':f,
@@ -296,7 +295,9 @@ for no,f in enumerate(diff_track_list):
                'tr_duration':tr_duration,
                'tr_distance':tr_distance,
                'tr_gradient':tr_gradient,
-               'tr_import_datetime':date_time}
+               'tr_max_speed': tr_max_speed,
+               'tr_average_speed':tr_average_speed,
+               'tr_import_datetime':tr_date_time}
 
     # tracks_sum_pd contains the previously read tracks, also from older imports, so new ones are appended to the back
     tracks_sum_pd = tracks_sum_pd.append(new_row, ignore_index=True)
