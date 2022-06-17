@@ -293,7 +293,7 @@ for i in range(N0_TRACKS):
     #define start index, where tracks are equal onwards, ideally nbrs_common.index[0] works fine...
     # e.g. [8, 264, 550, 859] which means: the common part of the tracks begin at 8@fist track, 264@second track
     # 550@thrid track and 859@fourth track
-    print(nbrs_common.head(15))
+    print(nbrs_common.head(20))
     idx = int(input('index please'))
     START_INDEX_COMMON.append(nbrs_common.loc[nbrs_common.index[idx],i])
     # filter table with information from start (where all tracks are common and copy the data to new pandas data frame
@@ -491,12 +491,12 @@ ax1.plot(times_pd['Distance [m]']/1000,                 # plot the reference lin
         label=file_names[0]+'_REF')
 ax1.legend(loc='upper left',markerscale=6)              # place the legend
 
-ax2=ax1.twinx()                                             # second y axis for elevation required hence share the y axes
-ax2.plot(times_pd['Distance [m]']/1000,                     # plot the x axes
-          track_const_distance_common[0]['elevation [m]'],  # and plot the elevation a second y axes
-         c='black',
-         linewidth=3)
-ax2.set_ylabel('elevation [m]')                             # set the name of the y axes
+#ax2=ax1.twinx()                                             # second y axis for elevation required hence share the y axes
+#ax2.plot(times_pd['Distance [m]']/1000,                     # plot the x axes
+#          track_const_distance_common[0]['elevation [m]'],  # and plot the elevation a second y axes
+#         c='black',
+#         linewidth=3)
+#ax2.set_ylabel('elevation [m]')                             # set the name of the y axes
 plt.show()
 
 ## ------------------------------------------------ speeds/ average speed --------------------------------------
