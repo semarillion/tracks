@@ -76,8 +76,10 @@ def f_track_kind(f):
     @:param f: filename which has the CB characters in the file name'''
     if '_CB' in f:
         return  'CB'
+    elif '_MTB' in f:
+        return  'MTB'
     else:
-        return  'RB'
+        return 'RR'
 
 
 def f_postgre_connect(constring):
