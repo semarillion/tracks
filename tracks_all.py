@@ -8,6 +8,7 @@ from tracks_aux import f_CalcAngleDeg,f_FindValuesCloseToMultiple,f_CalWpDistanc
 from  sqlalchemy import create_engine
 import psycopg2
 import re
+import json
 from psycopg2 import Error
 
 
@@ -42,9 +43,8 @@ SECONDS_PER_HOUR =3600
 
 # file paths's
 FILE_PATH_GPX = 'C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\overlap'
+FILE_PATH_CRE = 'C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\credentials'
 FILE_PATH_CSV = 'C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\overlap\\csv'
-FILE_STATISTICS = 'all_track_statistics.csv'
-FILE_TO_IMPORT = 'tracks_to_be_imported.csv'
 
 # store the intermediate results in lists
 lat=[]
@@ -65,9 +65,36 @@ cur_elevation = []
 sp_all=[]
 angle_bins = [0]
 
-connect_string = 'postgresql://postgres: arWF,GInO@localhost:5432/bicycle'
+#connect_string = 'postgresql://postgres: arWF,GInO@localhost:5432/bicycle'
 
 # start section local functions ----------------------------------------------------------------------------------------
+
+def f_connect_to_postgresDB(path_to_cre,cre_file):
+    ''' This function creates the connection string for the data base. Details are held in a json file
+    @:parameter: path_to_cre: path information where the credential file is located
+                cre_file: file with details of credentials
+    @:return: c: connection string based on credentials'''
+
+    # get the current path information to be restored back later
+    cur_path = os.getcwd()
+    # change to credentials folder
+    os.chdir(path_to_cre)
+    # ope the json file..
+    file = open(cre_file)
+    # and convert it back to dictionary
+    data = json.load(file)
+
+    # init value for the connection string
+    c = ''
+    # loop over all keys in dict and append the data to a string
+    for el in data.keys():
+        c+=data[el]
+    # swithc back to the old working directory
+    os.chdir(cur_path)
+
+    # and return the connections string
+    return c
+
 
 def f_track_kind(f):
     ''' This function checks whether an cravel bike or a race bike was used
@@ -96,6 +123,7 @@ def f_postgre_connect(constring):
     c2.autocommit = True
     # and return the connections for later usage
     return c1,c2
+
 
 def f_get_last_id(db,id):
     ''' This funciton returns the last index of a table. This is need because
@@ -210,14 +238,6 @@ def f_CalculateData(tmp_df):
 # change the directory
 os.chdir(FILE_PATH_GPX)
 
-# read csv of track statistic to check which track has been analyzed so far and to identify later which tracks
-# are newly added in the list
-try:
-    tracks_sum_pd = pd.read_csv(FILE_STATISTICS,index_col=None)
-except:
-    tracks_sum_pd = pd.DataFrame(columns=cols_track)
-    tracks_sum_pd.to_csv(FILE_STATISTICS,index=False)
-
 f_angel_to_bin()
 
 # get list of available gpx files on local drive and output them on console
@@ -226,7 +246,8 @@ print('\nfound tracks on local computer..')
 print(*f_list,sep='\n')
 
 #establish connection to data base
-conn_sqlal,conn_psycopg2 = f_postgre_connect(connect_string)
+connect_string = f_connect_to_postgresDB(path_to_cre=FILE_PATH_CRE,cre_file='cre_postgres_local.json')
+conn_sqlal,conn_psycopg2 = f_postgre_connect(constring=connect_string)
 
 tmp_l=[]
 for track in f_list:
