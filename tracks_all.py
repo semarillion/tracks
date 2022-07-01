@@ -1,15 +1,15 @@
-import datetime
 import sys
 import gpxpy.gpx
 import pandas as pd
 from datetime import timedelta
 import os
 from tracks_aux import f_CalcAngleDeg,f_FindValuesCloseToMultiple,f_CalWpDistance
-from  sqlalchemy import create_engine
+from sqlalchemy import create_engine
 import psycopg2
 import re
 import json
-from psycopg2 import Error
+import datetime
+from wheather_meteostat import f_get_wheather_data
 
 
 # define some dictionary
@@ -36,6 +36,7 @@ pd.set_option('display.width', 1000)
 tmp_df = pd.DataFrame(columns=[])
 tracks_sum_pd = pd.DataFrame(columns=[])
 tracks_to_be_imported_pd = pd.DataFrame(columns=[])
+wheather_pd = pd.DataFrame(columns=[])
 
 # constants
 DISTANCE = 50 # distance between way points in m (to reduce the data)
@@ -138,14 +139,15 @@ def f_get_last_id(db,id):
     return id
 
 
-def f_Calc_id_range():
+def f_Calc_id_range(table):
     ''' This function returns the range of indices, which need to be considered later in the data frame
         to be written in the data base
         the id starts counting from 0
         @:return: idx_range: list of values which will be mapped later as track_id '''
 
     # get the last index of the data base
-    idx_last = f_get_last_id('statistics','track_id')
+    #idx_last = f_get_last_id('statistics','track_id')
+    idx_last = f_get_last_id(db=table, id='track_id')
 
     # depending on an empty feedback the start value need to be calculated
     if not idx_last:
@@ -241,7 +243,7 @@ os.chdir(FILE_PATH_GPX)
 f_angel_to_bin()
 
 # get list of available gpx files on local drive and output them on console
-f_list=[file for file in os.listdir() if '.gpx' in file]#
+f_list=[file for file in os.listdir() if '.gpx' in file]
 print('\nfound tracks on local computer..')
 print(*f_list,sep='\n')
 
@@ -254,7 +256,6 @@ for track in f_list:
     sql = 'SELECT tr_name FROM statistics WHERE tr_name in (\''+track+'\')'
     if pd.read_sql(sql, con=conn_psycopg2)['tr_name'].any() == False:
         tmp_l.append(track)
-
     else:
         continue
 
@@ -292,6 +293,14 @@ for no,f in enumerate(f_list):
                     distance.append(0)
                     cum_elevation.append(0)
                     dur.append(datetime.time(0,0,0))
+
+                    # needed for wheather data
+                    tr_start_time = point.time.time()
+                    tr_start_hour = tr_start_time.hour
+                    tr_start_elevation = point.elevation
+                    tr_start_lat = point.latitude
+                    tr_start_lon = point.longitude
+
                 else:
                     dist_per_point.append(
                         point.distance_3d(segment.points[point_nr - 1]))  # distance between wasy points
@@ -373,14 +382,8 @@ for no,f in enumerate(f_list):
     # leads to a division by 0 which leads at the end to NaN, hence these lines are dropped
     tmp_df.dropna(axis=0, how='any',inplace=True)
 
-    # change now to target folder to store csv
-    #os.chdir(FILE_PATH_CSV)
-    # write the current pandas dataframe of track x to csv
-    #print('write track to csv..',end='')
-    #tmp_df.to_csv(f+'.csv',index=None)
-    print('done..')
-    # and change back to gpx folder
-    #os.chdir(FILE_PATH_GPX)
+    # copy detailed track info to dictionary (each value of dictionary helds the data of each track)
+    track_dict.update({no: tmp_df})
 
     # track statistics --------------------------------------------------------------------------------------------
     # make some statistics for the track summary
@@ -396,6 +399,8 @@ for no,f in enumerate(f_list):
     tr_average_speed = round((tr_distance)/(tr_duration.seconds/SECONDS_PER_HOUR),1)
     tr_import_date_time = datetime.datetime.now().strftime("%Y-%m-%d")
     tr_date = re.match('\d{4}-\d{2}-\d{2}',f)[0]
+    tr_date = datetime.datetime.strptime(tr_date,'%Y-%m-%d').date()
+
 
     # make new row for pandas dataframe with values calculated above
     new_row = {'tr_name':f,
@@ -409,14 +414,16 @@ for no,f in enumerate(f_list):
                'tr_max_speed': tr_max_speed,
                'tr_average_speed':tr_average_speed,
                'tr_import_datetime':tr_import_date_time,
-               'tr_date':tr_date}
+               'tr_date':tr_date,
+               'tr_start_time':tr_start_time}
 
 
     # tracks_sum_pd contains the previously read tracks, also from older imports, so new ones are appended to the back
     tracks_sum_pd= tracks_sum_pd.append(new_row, ignore_index=True)
 
-    # copy detailed track info to dictionary (each value of dictionary helds the data of each track)
-    track_dict.update({no: tmp_df})
+
+    tmp_pd = f_get_wheather_data(hour=tr_start_hour, date=tr_date, lon=tr_start_lon, lat=tr_start_lat)
+    wheather_pd = wheather_pd.append(tmp_pd,ignore_index=True)
 
     # reset all lists for next loop
     lat, lon, elev, cur_elevation, cum_elevation, dur, times, dist_per_point, s, distance, speed, dur_s, angle = \
@@ -424,24 +431,29 @@ for no,f in enumerate(f_list):
     # reset pandas data frame as well as data per track for next loop
     tmp_df = pd.DataFrame(columns=[])
 
-# reorder the columns
-tracks_sum_pd = tracks_sum_pd[
-         [ 'tr_kind','tr_date','tr_distance', 'tr_duration', 'tr_average_speed', 'tr_max_speed', 'tr_lowest_point',
-           'tr_highest_point','tr_cum_eval', 'tr_gradient', 'tr_import_datetime', 'tr_name']]
 
 # remove the day value in column and convert to string - that works also with later import to postgre
 tracks_sum_pd['tr_duration'] = tracks_sum_pd['tr_duration'].astype(str).map(lambda x:x[7:])
 # tracks_to_be_imported_pd['tr_duration'] = tracks_to_be_imported_pd['tr_duration'].astype(str).map(lambda x:x[7:])
 
 # calc the new id range, based on the latest value of the track_id and the amount tracks to be appended
-track_id_range_l = f_Calc_id_range()
+track_id_range_l = f_Calc_id_range(table='statistics')
 
-# add the track_id to dataframe of statistics
-tracks_sum_pd['track_id']=track_id_range_l
+# add the PK track_id to dataframe of statistics
+tracks_sum_pd['track_id']=f_Calc_id_range(table='statistics')
+# ..and weather
+wheather_pd['track_id'] = f_Calc_id_range(table="wheather")
+wheather_pd['wheather_id'] = f_Calc_id_range(table='wheather')
+
+
 # and write the dataframe to database
+print('write statistic table to data base...')
 tracks_sum_pd.to_sql('statistics',con = conn_sqlal,index=False,if_exists='append')
+wheather_pd.to_sql('wheather',con = conn_sqlal,index=False,if_exists='append')
+
 
 # now update the data frames with way points for each individual track with way_point id and track_id
+print('write track data to way point table in data base',end='')
 for i in range(0,len(f_list)):
     # here, the individial index for each way point is calculated based on the way points which are
     # already in the data base
@@ -456,4 +468,6 @@ for i in range(0,len(f_list)):
     # calculate the the individual way point id, based on the previous track and the lenght of the current track
     track_dict[i]['way_point_id'] = list(range(start_idx, start_idx+len(track_dict[i])))
     # append the data to the database
+    print('.',end='')
     track_dict[i].to_sql('way_points', con=conn_sqlal, index=False, if_exists='append')
+print('\n\nWriting Finished!')
