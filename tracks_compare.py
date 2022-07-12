@@ -307,9 +307,9 @@ for i in range(N0_TRACKS):
  # number of way points of shortest track - this is need because the shortes track defines the lenght where a
  # comparison is possible
 MIN_LEN_TRACK_COMMON = min(NO_LEN_TRACKS_COMMON)
-
 # now adjust all tracks on the length of the shortest track that a comparison of tracks is possible
 for tr in range(N0_TRACKS):
+
     track_const_distance_common[tr] = track_const_distance_common[tr].loc[START_INDEX_COMMON[tr]:START_INDEX_COMMON[tr]+MIN_LEN_TRACK_COMMON-1:, :]
 
 # now generate elapsed time@way point as well as distance traveled since start for each track
