@@ -13,6 +13,7 @@ import os
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import tracks_aux as t_aux
 import sys
 from itertools import permutations
@@ -447,7 +448,7 @@ for i in range(0, len(lat_all)):
 plt.legend(loc='upper left', markerscale=6)
 plt.show()
 
-## ---------------------------------------- 'common sections' --------------------------------------------------------
+# ---------------------------------------- 'common sections' --------------------------------------------------------
 #plt.figure(3)
 #plt.title('common sections')
 #plt.ylabel('lateral')
@@ -471,13 +472,17 @@ plt.show()
 #plt.legend(loc='upper left', markerscale=6)
 #plt.show()
 
-# --------------------------------- time advantage/lag over distance and elevation ------------------------------------
-fig, ax1 = plt.subplots()
+
+fig = plt.figure(figsize=(10,15))
+G = gridspec.GridSpec(3,3)
+
+ax1 = plt.subplot(G[:2,:])
 ax1.set_title(' time advantage/lag over distance')
 ax1.set_xlabel('traveled distance [km]')
 ax1.set_ylabel(' time [min]')
 ax1.grid(True)
 
+# plot the tim difference over distance
 for i in range(1,N0_TRACKS):
    idx=times_pd.columns[i+N0_TRACKS*2] # start column = diff_track_Track_1 up to diff_track_Track_x
    print(idx)
@@ -491,26 +496,17 @@ ax1.plot(times_pd['Distance [m]']/1000,                 # plot the reference lin
         label=file_names[0]+'_REF')
 ax1.legend(loc='upper left',markerscale=6)              # place the legend
 
-#ax2=ax1.twinx()                                             # second y axis for elevation required hence share the y axes
-#ax2.plot(times_pd['Distance [m]']/1000,                     # plot the x axes
-#          track_const_distance_common[0]['elevation [m]'],  # and plot the elevation a second y axes
-#         c='black',
-#         linewidth=3)
-#ax2.set_ylabel('elevation [m]')                             # set the name of the y axes
+#plot the elevation over distance
+ax2 = plt.subplot(G[2,:])
+ax2.plot(times_pd['Distance [m]']/1000,                     # plot the x axes
+        track_const_distance_common[0]['elevation [m]'],  # and plot the elevation a second y axes
+         c='black',
+         linewidth=3)
+ax2.set_ylabel('elevation [m]')
+ax2.grid(True)
+ax2.fill_between(times_pd['Distance [m]']/1000,track_const_distance_common[0]['elevation [m]'],color="grey")
+ax2.set_ylim([track_const_distance_common[0]['elevation [m]'].min()-50,
+             track_const_distance_common[0]['elevation [m]'].max()+50])
+
 plt.show()
 
-## ------------------------------------------------ speeds/ average speed --------------------------------------
-#plt.figure(7)
-#plt.title('speeds along track')
-#plt.xlabel(' km ')
-#plt.ylabel('speed')
-#for i in range(0,N0_TRACKS):
-#    plt.plot(times_pd['Distance [m]']/1000,
-#             track_const_distance_common[i]['filt speed [km/h]'],
-#             label=file_names[i])
-#    plt.plot(times_pd['Distance [m]']/1000,
-#             [track_const_distance_common[i]['filt speed [km/h]'].mean()]*len(times_pd['Distance [m]']),
-#             c=cols_dict[i])
-#    y_text=track_const_distance_common[i]['filt speed [km/h]'].tolist()[-1]
-#plt.legend(loc='upper left')
-#plt.show()

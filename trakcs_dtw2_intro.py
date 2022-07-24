@@ -45,18 +45,6 @@ for no,f in enumerate(f_list):
     tmp_df['lateral'] = lat
     tmp_df['elevation [m]'] = elev
 
-    # now generate a column in pandas data frame which indicates a mulitiple of DISTANCE (just to reduce the data)
-    # e.g. a 1 indicates that it is a multiple of DISTANCE
-    #tmp_df['match multiple'] = f_FindValuesCloseToMultiple(tmp_df['distance from start [m]'].tolist(), DISTANCE)
-    #print('track no', no, 'with', len(tmp_df), 'way points')
-
-    # use only the data with a multiple of a specific distance
-    #tmp_df=tmp_df[tmp_df['match multiple']==1]
-
-    # due to multiple operation before the index is now wrong, hence the index column is reseted
-    # and the newly added index column is dropped
-    #tmp_df=tmp_df.reset_index(drop=True)
-
     # finally copy temporay pandas data frame to dictionary (each value of dictionary helds the data of each track)
     track_dict.update({no: tmp_df})
 
@@ -67,7 +55,6 @@ for no,f in enumerate(f_list):
 
 series1 = np.array(track_dict[0].loc[:,'longitudinal':'lateral'])
 series2 = np.array(track_dict[1].loc[:,'longitudinal':'lateral'])
-
 
 dtw_distance_12,dtw_matrix_12 = dtw_ndim.warping_paths(series1,series2)
 
