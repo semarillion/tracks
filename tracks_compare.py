@@ -43,7 +43,7 @@ times_pd = pd.DataFrame(columns=[])         # data with times and difference to 
 speeds_pd = pd.DataFrame(columns=[])        # speed information between way points
 
 SPEED_THRESH = 2                            # filter for speed
-DISTANCE = 100                              # distance between way points (to reduce the data)
+DISTANCE = 50                               # distance between way points (to reduce the data)
 
 # store the intermediate results in lists
 lat = []
@@ -115,6 +115,26 @@ def f_rangeCheck(nbrs):
     # and return the result of the plausibility check
     return res
 
+def discrete_cmap(N, base_cmap=None):
+    """Create an N-bin discrete colormap from the specified input map"""
+
+    # Note that if base_cmap is a string or None, you can simply do
+    #    return plt.cm.get_cmap(base_cmap, N)
+    # The following works for string, None, or a colormap instance:
+
+    base = plt.cm.get_cmap(base_cmap)
+    color_list = base(np.linspace(0, 1, N))
+    cmap_name = base.name + str(N)
+    return base.from_list(cmap_name, color_list, N)
+
+def my_fun(x):
+    return (x.iloc[-1] - x.iloc[0])/DISTANCE*100
+
+def filter_neg_gradient(x):
+    if x < 0:
+        return 0
+    else:
+        return x
 
 # -------------------------------------------------------------- start of the main program ----------------------------
 
@@ -497,16 +517,34 @@ ax1.plot(times_pd['Distance [m]']/1000,                 # plot the reference lin
 ax1.legend(loc='upper left',markerscale=6)              # place the legend
 
 #plot the elevation over distance
+ele = pd.Series(track_const_distance_common[0]['elevation [m]']).to_frame()
+ele['gradient'] = ele['elevation [m]'].rolling(window=2).apply(my_fun)
+ele['pos_gradient'] = ele['gradient'].apply(filter_neg_gradient)
+ele = ele.fillna(0)
+bins = np.arange(0,26,2).tolist()
+ele['grad_label'] = pd.cut(x = ele['pos_gradient'],right = False, bins=bins,labels = list(range(len(bins)-1)))
+color_map = discrete_cmap(len(bins), 'jet')
 ax2 = plt.subplot(G[2,:])
-ax2.plot(times_pd['Distance [m]']/1000,                     # plot the x axes
+ax2.scatter(times_pd['Distance [m]']/1000,                     # plot the x axes
         track_const_distance_common[0]['elevation [m]'],  # and plot the elevation a second y axes
-         c='black',
-         linewidth=3)
+         c=ele['grad_label'],
+         cmap = color_map,
+         linewidth=1)
+
+# now fill the area of the elevation and limit the max and min hight
 ax2.set_ylabel('elevation [m]')
-ax2.grid(True)
-ax2.fill_between(times_pd['Distance [m]']/1000,track_const_distance_common[0]['elevation [m]'],color="grey")
+ax2.fill_between(times_pd['Distance [m]']/1000,ele['elevation [m]'],
+                 color='lightgrey')
 ax2.set_ylim([track_const_distance_common[0]['elevation [m]'].min()-50,
              track_const_distance_common[0]['elevation [m]'].max()+50])
 
 plt.show()
+
+#fig.colorbar(pcm, ax = ax2)
+#pcm = ax2.pcolormesh([times_pd['Distance [m]']/1000,track_const_distance_common[0]['elevation [m]']],cmap = color_map)
+
+
+
+
+
 
