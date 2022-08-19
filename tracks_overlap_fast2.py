@@ -216,12 +216,17 @@ for no, f in enumerate(f_list): # iterate over the list of gpx files
 
                     # filter speed and store it in list
                     last_speed_filt = speed_filt[-1]
-                    if (speed[point_nr] - last_speed_filt) > SPEED_THRESH:
-                        speed_filt.append((last_speed_filt + last_speed_filt + SPEED_THRESH) / 2)
-                    elif (last_speed_filt - speed[point_nr]) > SPEED_THRESH:
-                        speed_filt.append((last_speed_filt + (last_speed_filt - SPEED_THRESH)) / 2)
+                    if speed[point_nr]!=None:
+                        if (speed[point_nr] - last_speed_filt) > SPEED_THRESH:
+                            speed_filt.append((last_speed_filt + last_speed_filt + SPEED_THRESH) / 2)
+                        elif (last_speed_filt - speed[point_nr]) > SPEED_THRESH:
+                            speed_filt.append((last_speed_filt + (last_speed_filt - SPEED_THRESH)) / 2)
+                        else:
+                            speed_filt.append((last_speed_filt + speed[point_nr]) / 2)
                     else:
-                        speed_filt.append((last_speed_filt + speed[point_nr]) / 2)
+                        speed_filt.append((last_speed_filt))
+
+
 
                     # calculate now the cummulated hight
                     if point.elevation > segment.points[point_nr - 1].elevation:
@@ -245,8 +250,8 @@ for no, f in enumerate(f_list): # iterate over the list of gpx files
     tmp_df['cum_elevation [m]'] = cum_elevation
     tmp_df['times [h/m/s]'] = times
     tmp_df['dt_duration [s]'] = dur
-    tmp_df['speed [km/h]'] = [s * 3.6 for s in speed]               # convert m/s to kph - non filtered speed
-    tmp_df['filt speed [km/h]'] = [s * 3.6 for s in speed_filt]     # convert m/s to kph - filtered speed
+    #tmp_df['speed [km/h]'] = [s * 3.6 for s in speed]               # convert m/s to kph - non filtered speed
+    #tmp_df['filt speed [km/h]'] = [s * 3.6 for s in speed_filt]     # convert m/s to kph - filtered speed
     tmp_df['distance from start [m]'] = distance
 
     # now generate a column in pandas data frame which indicates a mulitiple of DISTANCE (just to reduce the data)
