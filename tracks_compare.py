@@ -343,6 +343,7 @@ for i in range(N0_TRACKS):
     # 550@thrid track and 859@fourth track
 
     # copy out of the first tuple from track i the index of the way point and append it to the list
+    # START_INDEX_COMMON.append(nbrs_common.loc[nbrs_common.index[idx],i])
     START_INDEX_COMMON.append(nbrs_common.loc[idx, i])
 
     # filter table with information from start (where all tracks are common and copy the data to new pandas data frame
