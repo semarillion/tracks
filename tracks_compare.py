@@ -43,7 +43,7 @@ times_pd = pd.DataFrame(columns=[])         # data with times and difference to 
 speeds_pd = pd.DataFrame(columns=[])        # speed information between way points
 
 SPEED_THRESH = 2                            # filter for speed
-DISTANCE = 50                               # distance between way points (to reduce the data)
+DISTANCE = 100                               # distance between way points (to reduce the data)
 
 # store the intermediate results in lists
 lat = []
@@ -127,19 +127,42 @@ def discrete_cmap(N, base_cmap=None):
     cmap_name = base.name + str(N)
     return base.from_list(cmap_name, color_list, N)
 
-def my_fun(x):
+def calc_gradient(x):
+    ''' here the gradient between two waypoints is calculated.
+    :param: x tuple of two hights with a distance of DISTANCE
+    :return: gradient between the to hights'''
     return (x.iloc[-1] - x.iloc[0])/DISTANCE*100
 
 def filter_neg_gradient(x):
+    ''' Gradient limitation: all negative gradients are set to 0
+    @:param: x: current gradient of the table
+    :return: 0 when a negative gradient was obtained, x gradient if it is positive'''
     if x < 0:
         return 0
     else:
         return x
 
+def find_start_point(tab):
+    ''' The table contains a column for each track and a common indicator. This indicator is delted first.
+    Then it is checked if the way points are in the correct order. That means that the number of waypoints
+    sahll increase from track to track: wpn < wpn+1 < wpn+2 ..wpn+m
+    @:param tab: table containing the way points of each track
+    @:return: index, where the first match according to the requirement (explained above) is'''
+    tab.drop('common', axis=1, inplace=True)
+    for i in tab.index:
+        vals = tab.loc[i,:].values.tolist()
+        if vals == sorted(vals):
+            idx_return = i
+            break
+        else:
+            idx_return = 0
+
+    return idx_return
+
 # -------------------------------------------------------------- start of the main program ----------------------------
 
 # change current working directory
-os.chdir("C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\compare")
+os.chdir("C:\\Users\\arwe4\\OX Drive\\My files\\gpx\\compare")
 # make a list of available gpx files in folder
 f_list = [file for file in os.listdir() if '.gpx' in file]
 
@@ -309,14 +332,19 @@ nbrs_pd['common'] = list(f_rangeCheck(nbrs_pd))
 # and filter for members where plausible neighbors were found
 nbrs_common = nbrs_pd[nbrs_pd['common'] == 1]
 
+#print(nbrs_common.head(20))
+# here, get the firt tuple which indicates the first common point out of all tracks
+idx = find_start_point(tab = nbrs_common)
+
 # let all tracks now start where the first common point in all tracks was found
 for i in range(N0_TRACKS):
     #define start index, where tracks are equal onwards, ideally nbrs_common.index[0] works fine...
     # e.g. [8, 264, 550, 859] which means: the common part of the tracks begin at 8@fist track, 264@second track
     # 550@thrid track and 859@fourth track
-    print(nbrs_common.head(20))
-    idx = int(input('index please'))
-    START_INDEX_COMMON.append(nbrs_common.loc[nbrs_common.index[idx],i])
+
+    # copy out of the first tuple from track i the index of the way point and append it to the list
+    START_INDEX_COMMON.append(nbrs_common.loc[idx, i])
+
     # filter table with information from start (where all tracks are common and copy the data to new pandas data frame
     track_const_distance_common[i]=track_const_distance[i].loc[START_INDEX_COMMON[i]::, :]
     # and drop not required coloums because they are re-calculated (e.g. distance from start would be now wrong because
@@ -328,6 +356,7 @@ for i in range(N0_TRACKS):
  # number of way points of shortest track - this is need because the shortes track defines the lenght where a
  # comparison is possible
 MIN_LEN_TRACK_COMMON = min(NO_LEN_TRACKS_COMMON)
+
 # now adjust all tracks on the length of the shortest track that a comparison of tracks is possible
 for tr in range(N0_TRACKS):
 
@@ -517,19 +546,21 @@ ax1.plot(times_pd['Distance [m]']/1000,                 # plot the reference lin
 ax1.legend(loc='upper left',markerscale=6)              # place the legend
 
 #plot the elevation over distance
-ele = pd.Series(track_const_distance_common[0]['elevation [m]']).to_frame()
-ele['gradient'] = ele['elevation [m]'].rolling(window=2).apply(my_fun)
+ele = track_const_distance_common[0][['lateral','longitudinal','elevation [m]']]
+ele['gradient'] = ele['elevation [m]'].rolling(window=2).apply(calc_gradient)
 ele['pos_gradient'] = ele['gradient'].apply(filter_neg_gradient)
 ele = ele.fillna(0)
 bins = np.arange(0,26,2).tolist()
 ele['grad_label'] = pd.cut(x = ele['pos_gradient'],right = False, bins=bins,labels = list(range(len(bins)-1)))
-color_map = discrete_cmap(len(bins), 'jet')
+
+color_map = discrete_cmap(len(bins), 'Reds')
+
 ax2 = plt.subplot(G[2,:])
 ax2.scatter(times_pd['Distance [m]']/1000,                     # plot the x axes
         track_const_distance_common[0]['elevation [m]'],  # and plot the elevation a second y axes
          c=ele['grad_label'],
          cmap = color_map,
-         linewidth=1)
+         linewidth=0.8)
 
 # now fill the area of the elevation and limit the max and min hight
 ax2.set_ylabel('elevation [m]')
@@ -542,6 +573,14 @@ plt.show()
 
 #fig.colorbar(pcm, ax = ax2)
 #pcm = ax2.pcolormesh([times_pd['Distance [m]']/1000,track_const_distance_common[0]['elevation [m]']],cmap = color_map)
+
+#plt.figure(1)
+#x=[1,2,3,4,5]
+#y=[1,4,6,5,4]
+#c=['blue','red','orange','green','black']
+#for i in range(len(x)-1):
+#    plt.plot(x[i:i+2],y[i:i+2],c=c[i])
+
 
 
 
