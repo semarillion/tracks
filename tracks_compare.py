@@ -550,7 +550,7 @@ ele = track_const_distance_common[0][['lateral','longitudinal','elevation [m]']]
 ele['gradient'] = ele['elevation [m]'].rolling(window=2).apply(calc_gradient)
 ele['pos_gradient'] = ele['gradient'].apply(filter_neg_gradient)
 ele = ele.fillna(0)
-bins = np.arange(0,26,2).tolist()
+bins = np.arange(0,26,1).tolist()
 ele['grad_label'] = pd.cut(x = ele['pos_gradient'],right = False, bins=bins,labels = list(range(len(bins)-1)))
 
 color_map = discrete_cmap(len(bins), 'Reds')
