@@ -529,10 +529,12 @@ plt.show()
 
 
 fig = plt.figure(figsize=(10,15))
-G = gridspec.GridSpec(4,3)
+G = gridspec.GridSpec(3,3)
 
 ax1 = plt.subplot(G[:2,:])
-ax1.set_title(' time advantage/lag over distance')
+title_string = ' time advantage/lag over distance // ' + file_names[0].split('_')[-1]
+ax1.set_title(title_string)
+
 ax1.set_xlabel('traveled distance [km]')
 ax1.set_ylabel(' time [min]')
 ax1.grid(True)
@@ -579,8 +581,9 @@ ax2.fill_between(times_pd['Distance [m]']/1000,ele['elevation [m]'],
                  color='lightgrey')
 ax2.set_ylim([track_const_distance_common[0]['elevation [m]'].min()-50,
              track_const_distance_common[0]['elevation [m]'].max()+50])
-plt.tight_layout()
+
 plt.show()
+plt.tight_layout()
 
 #fig.colorbar(pcm, ax = ax2)
 #pcm = ax2.pcolormesh([times_pd['Distance [m]']/1000,track_const_distance_common[0]['elevation [m]']],cmap = color_map)
