@@ -17,12 +17,17 @@ import matplotlib.gridspec as gridspec
 import tracks_aux as t_aux
 import sys
 from itertools import permutations
+import re
+
 
 np.set_printoptions(threshold=sys.maxsize)
 
 # define dictionary with colors
 cols_dict = {0: 'blue', 1: 'orange', 2: 'green', 3: 'red', 4: 'purple', 5: 'brown',
              6: 'pink', 7: 'olive', 8: 'cyan', 10: 'black', 9: 'magenta'}
+
+# mathc string to extract date of track
+re_date_track = '\d{4}-\d{2}-\d{2}'
 
 # define some dictionary
 track_dict = {}                     # ..for entire data of track
@@ -481,9 +486,9 @@ for t in tr:  # iterate now over each individual track
     time_diff = []
 
 
-## -------------------------------------------------- the data -------------------------------------------------------
+## -------------------------------------------------- plot the data -------------------------------------------------------
 #
-## --------------------------------------------- 'original tracks ----------------------------------------------------
+## --------------------------------------------- original tracks ----------------------------------------------------
 for i in range(0, N0_TRACKS):
     matched_points_of_tracks.append(nbrs_common[i].tolist())
 plt.figure(2)
@@ -524,7 +529,7 @@ plt.show()
 
 
 fig = plt.figure(figsize=(10,15))
-G = gridspec.GridSpec(3,3)
+G = gridspec.GridSpec(4,3)
 
 ax1 = plt.subplot(G[:2,:])
 ax1.set_title(' time advantage/lag over distance')
@@ -536,15 +541,20 @@ ax1.grid(True)
 for i in range(1,N0_TRACKS):
    idx=times_pd.columns[i+N0_TRACKS*2] # start column = diff_track_Track_1 up to diff_track_Track_x
    print(idx)
-   ax1.plot(times_pd['Distance [m]']/1000,              # x axes = distance
-            times_pd[idx]/60,c=cols_dict[i],            # y axes = calculated difference of current track to referenced track
-            label=file_names[i])
+   ax1.plot(# x axes = distance
+            times_pd['Distance [m]']/1000,
+            # y axes = calculated difference of current track to referenced track
+            times_pd[idx]/60,c=cols_dict[i],
+            # extract date of track as legend info
+            label=re.match(re_date_track,file_names[i])[0])
 
 ax1.plot(times_pd['Distance [m]']/1000,                 # plot the reference line
         [0]*len(times_pd),
         c=cols_dict[0],
-        label=file_names[0]+'_REF')
+        label=re.match(re_date_track,file_names[0])[0]+'_REF')
 ax1.legend(loc='upper left',markerscale=6)              # place the legend
+
+
 
 #plot the elevation over distance
 ele = track_const_distance_common[0][['lateral','longitudinal','elevation [m]']]
@@ -561,7 +571,7 @@ ax2.scatter(times_pd['Distance [m]']/1000,                     # plot the x axes
         track_const_distance_common[0]['elevation [m]'],  # and plot the elevation a second y axes
          c=ele['grad_label'],
          cmap = color_map,
-         linewidth=0.8)
+         linewidth=0.1)
 
 # now fill the area of the elevation and limit the max and min hight
 ax2.set_ylabel('elevation [m]')
@@ -569,7 +579,7 @@ ax2.fill_between(times_pd['Distance [m]']/1000,ele['elevation [m]'],
                  color='lightgrey')
 ax2.set_ylim([track_const_distance_common[0]['elevation [m]'].min()-50,
              track_const_distance_common[0]['elevation [m]'].max()+50])
-
+plt.tight_layout()
 plt.show()
 
 #fig.colorbar(pcm, ax = ax2)
