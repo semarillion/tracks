@@ -18,6 +18,8 @@ import tracks_aux as t_aux
 import sys
 from itertools import permutations
 import re
+import folium
+import webbrowser
 
 
 np.set_printoptions(threshold=sys.maxsize)
@@ -555,6 +557,9 @@ ax1.plot(times_pd['Distance [m]']/1000,                 # plot the reference lin
         c=cols_dict[0],
         label=re.match(re_date_track,file_names[0])[0]+'_REF')
 ax1.legend(loc='upper left',markerscale=6)              # place the legend
+ax1.spines['top'].set_visible(False)
+ax1.spines['left'].set_visible(False)
+ax1.spines['right'].set_visible(False)
 
 
 
@@ -581,19 +586,50 @@ ax2.fill_between(times_pd['Distance [m]']/1000,ele['elevation [m]'],
                  color='lightgrey')
 ax2.set_ylim([track_const_distance_common[0]['elevation [m]'].min()-50,
              track_const_distance_common[0]['elevation [m]'].max()+50])
-
+ax2.spines['top'].set_visible(False)
+ax2.spines['left'].set_visible(False)
+ax2.spines['right'].set_visible(False)
 plt.show()
 plt.tight_layout()
 
-#fig.colorbar(pcm, ax = ax2)
-#pcm = ax2.pcolormesh([times_pd['Distance [m]']/1000,track_const_distance_common[0]['elevation [m]']],cmap = color_map)
+# folium
+lat_mean = track_const_distance_common[0]['lateral'].values.mean()
+long_mean = track_const_distance_common[0]['longitudinal'].values.mean()
+wp = np.array(track_const_distance_common[0][['lateral','longitudinal']])
 
-#plt.figure(1)
-#x=[1,2,3,4,5]
-#y=[1,4,6,5,4]
-#c=['blue','red','orange','green','black']
-#for i in range(len(x)-1):
-#    plt.plot(x[i:i+2],y[i:i+2],c=c[i])
+hm_hp = track_const_distance_common[0]['elevation [m]'].max()
+hm_lp = track_const_distance_common[0]['elevation [m]'].min()
+
+track_map = folium.Map(
+    location = [lat_mean,long_mean],
+    zoom_start=12,
+    tiles='Stamen Terrain' )
+
+
+track_line = folium.PolyLine(locations=wp,weight=5)
+track_map.add_child(track_line)
+
+start = folium.Marker( location=wp[0].tolist(), icon = folium.Icon(color = 'green'), popup="starting point")
+end = folium.Marker( location=wp[-1].tolist(), icon = folium.Icon(color = 'red'),popup='finish point')
+
+hp = track_const_distance_common[0][track_const_distance_common[0]['elevation [m]']==track_const_distance_common[0]['elevation [m]'].max()][['lateral','longitudinal']].values.tolist()[0]
+highest = folium.Marker(location=hp, icon = folium.Icon(color='blue'),popup='highest point @ '+str(hm_hp)+'hm')
+
+lp = track_const_distance_common[0][track_const_distance_common[0]['elevation [m]']==track_const_distance_common[0]['elevation [m]'].min()][['lateral','longitudinal']].values.tolist()[0]
+lowest = folium.Marker(location=lp, icon = folium.Icon(color='white'),popup='lowest point @ '+str(hm_lp)+'hm')
+
+track_map.add_child(start)
+track_map.add_child(end)
+track_map.add_child(highest)
+track_map.add_child(lowest)
+
+
+folium_file_name = file_names[0].split('_')[-1].split('.')[0]+'.html'
+
+track_map.save(folium_file_name)
+
+webbrowser.open_new_tab(folium_file_name)
+
 
 
 
