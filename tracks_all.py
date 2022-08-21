@@ -43,9 +43,9 @@ DISTANCE = 50 # distance between way points in m (to reduce the data)
 SECONDS_PER_HOUR =3600
 
 # file paths's
-FILE_PATH_GPX = 'C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\overlap'
-FILE_PATH_CRE = 'C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\credentials'
-FILE_PATH_CSV = 'C:\\Users\\arwe4\\OX Drive (2)\\My files\\gpx\\overlap\\csv'
+FILE_PATH_GPX = 'C:\\Users\\arwe4\\OX Drive\\My files\\gpx\\overlap'
+FILE_PATH_CRE = 'C:\\Users\\arwe4\\OX Drive\\My files\\gpx\\credentials'
+FILE_PATH_CSV = 'C:\\Users\\arwe4\\OX Drive\\My files\\gpx\\overlap\\csv'
 
 # store the intermediate results in lists
 lat=[]
