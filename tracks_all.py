@@ -138,6 +138,17 @@ def f_get_last_id(db,id):
     # and return the last index found in the database
     return id
 
+def f_get_no_records(tab):
+    query = "SELECT COUNT(*) FROM "+tab
+    return pd.read_sql(query,con=conn_psycopg2).values[0][0]
+
+def f_get_db_size(db):
+    query = 'SELECT pg_size_pretty(pg_database_size('+'\''+db+'\''+'))'
+    return pd.read_sql(query, con=conn_psycopg2).values[0][0]
+
+def f_get_tab_size(tab):
+    query = 'SELECT pg_size_pretty(pg_relation_size('+'\''+tab+'\''+'))'
+    return pd.read_sql(query, con=conn_psycopg2).values[0][0]
 
 def f_Calc_id_range(table):
     ''' This function returns the range of indices, which need to be considered later in the data frame
@@ -250,6 +261,7 @@ print(*f_list,sep='\n')
 #establish connection to data base
 connect_string = f_connect_to_postgresDB(path_to_cre=FILE_PATH_CRE,cre_file='cre_postgres_local.json')
 conn_sqlal,conn_psycopg2 = f_postgre_connect(constring=connect_string)
+cursor = conn_psycopg2.cursor()
 
 tmp_l=[]
 for track in f_list:
@@ -471,3 +483,31 @@ for i in range(0,len(f_list)):
     print('.',end='')
     track_dict[i].to_sql('way_points', con=conn_sqlal, index=False, if_exists='append')
 print('\n\nWriting Finished!')
+
+# update statistics table in data base
+sql_drop_db_info = 'DROP TABLE IF EXISTS db_info'
+sql_create_db_info = 'CREATE TABLE IF NOT EXISTS db_info \
+    (no_wp integer NOT NULL,\
+    db_size character varying(10) NOT NULL,\
+    tab_size_statistics character varying(10) NOT NULL,\
+    tab_size_way_points character varying(10) NOT NULL,\
+    tab_size_wheather character varying(10) NOT NULL\
+)'
+
+# drop table for data base statistics
+cursor.execute(sql_drop_db_info)
+# crate a new table for data base statistics
+cursor.execute(sql_create_db_info)
+
+# by using the [] for the value there is no need to create any index, ideal when the data is later
+# written to the data base
+db_info_dict = {'no_wp':[f_get_no_records('way_points')],
+                'db_size':[f_get_db_size('bicycle')],
+                'tab_size_statistics':[f_get_tab_size('statistics')],
+                'tab_size_way_points':[f_get_tab_size('way_points')],
+                'tab_size_wheather':[f_get_tab_size('wheather')]}
+
+# data frame from dict is need to write later to data base
+db_info_pd = pd.DataFrame.from_dict(db_info_dict)
+# write data to data base
+db_info_pd.to_sql('db_info',con=conn_sqlal, index=False, if_exists='append')
