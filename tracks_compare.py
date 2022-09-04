@@ -342,6 +342,7 @@ nbrs_common = nbrs_pd[nbrs_pd['common'] == 1]
 #print(nbrs_common.head(20))
 # here, get the firt tuple which indicates the first common point out of all tracks
 idx = find_start_point(tab = nbrs_common)
+print(idx)
 
 # let all tracks now start where the first common point in all tracks was found
 for i in range(N0_TRACKS):
@@ -488,7 +489,7 @@ for t in tr:  # iterate now over each individual track
     time_diff = []
 
 
-## -------------------------------------------------- plot the data -------------------------------------------------------
+## -------------------------------------------------- plot the data -------------------------------------------------
 #
 ## --------------------------------------------- original tracks ----------------------------------------------------
 for i in range(0, N0_TRACKS):
@@ -504,31 +505,6 @@ for i in range(0, len(lat_all)):
                 label=file_names[i])
 plt.legend(loc='upper left', markerscale=6)
 plt.show()
-
-# ---------------------------------------- 'common sections' --------------------------------------------------------
-#plt.figure(3)
-#plt.title('common sections')
-#plt.ylabel('lateral')
-#plt.xlabel('longitudinal')
-#
-## loop over all tracks
-#for i in range(0, N0_TRACKS):
-#    # and plot each track and give plot a name
-#    plt.scatter(lon_red_all[i], lat_red_all[i],
-#                c=cols_dict[i],
-#                s=5,
-#                label=file_names[i])
-#    # plot the common sections
-#    for no, p in enumerate(matched_points_of_tracks[i]):
-#        plt.scatter(sum_lon[p], sum_lat[p], c=cols_dict[10], s=5)
-#
-#        # every km and only for track one to avoid to many text
-#        if no%(1000/DISTANCE)==0 and i==0:
-#            # plot the distance from start
-#            plt.text(sum_lon[p],sum_lat[p],s=str(round(sum_distance_from_start[p]/1000,1)))
-#plt.legend(loc='upper left', markerscale=6)
-#plt.show()
-
 
 fig = plt.figure(figsize=(10,15))
 G = gridspec.GridSpec(3,3)
@@ -610,6 +586,7 @@ track_line = folium.PolyLine(locations=wp,weight=5)
 track_map.add_child(track_line)
 
 start = folium.Marker( location=wp[0].tolist(), icon = folium.Icon(color = 'green'), popup="starting point")
+
 end = folium.Marker( location=wp[-1].tolist(), icon = folium.Icon(color = 'red'),popup='finish point')
 
 hp = track_const_distance_common[0][track_const_distance_common[0]['elevation [m]']==track_const_distance_common[0]['elevation [m]'].max()][['lateral','longitudinal']].values.tolist()[0]
