@@ -149,23 +149,6 @@ def filter_neg_gradient(x):
     else:
         return x
 
-def find_start_point(tab):
-    ''' The table contains a column for each track and a common indicator. This indicator is delted first.
-    Then it is checked if the way points are in the correct order. That means that the number of waypoints
-    sahll increase from track to track: wpn < wpn+1 < wpn+2 ..wpn+m
-    @:param tab: table containing the way points of each track
-    @:return: index, where the first match according to the requirement (explained above) is'''
-    tab.drop('common', axis=1, inplace=True)
-    for i in tab.index:
-        vals = tab.loc[i,:].values.tolist()
-        if vals == sorted(vals):
-            idx_return = i
-            break
-        else:
-            idx_return = 0
-
-    return idx_return
-
 # -------------------------------------------------------------- start of the main program ----------------------------
 
 # change current working directory
@@ -316,7 +299,7 @@ RANGE_PERMUT = list(permutations(list(range(0, N0_TRACKS))))    # make a list of
 for i in range(0, N0_TRACKS):
     start = sum(NO_LEN_TRACKS_WITH_0[0:i + 1])      # calculate the start address
     end = sum(NO_LEN_TRACKS_WITH_0[1:i + 2])        # and end address
-    print((start, end))                             # output value in console
+    # print((start, end))                             # output value in console
     range_dict.update({i: range(start, end)})       # update dictionary: now with start and end
 
     # now set the new index for each track according to calculated start and end, because this data frame
@@ -339,42 +322,38 @@ nbrs_pd['common'] = list(f_rangeCheck(nbrs_pd))
 # and filter for members where plausible neighbors were found
 nbrs_common = nbrs_pd[nbrs_pd['common'] == 1]
 
-#print(nbrs_common.head(20))
-# here, get the firt tuple which indicates the first common point out of all tracks
-idx = find_start_point(tab = nbrs_common)
-print(idx)
+# delete the common column, because for the next calculation it is not needed
+nbrs_common.drop('common',inplace=True,axis=True)
 
-# let all tracks now start where the first common point in all tracks was found
+# take the first indices, sort it and store it in list
+START_INDEX_COMMON = sorted(nbrs_common.iloc[0,:].values.tolist())
+# take the first indices, sort it and store it in list
+STOP_INDEX_COMMON = sorted(nbrs_common.iloc[-1,:].values.tolist())
+
+# let all tracks now start where the first common point in all tracks was found and end where the last common point is
 for i in range(N0_TRACKS):
-    #define start index, where tracks are equal onwards, ideally nbrs_common.index[0] works fine...
-    # e.g. [8, 264, 550, 859] which means: the common part of the tracks begin at 8@fist track, 264@second track
-    # 550@thrid track and 859@fourth track
+    # filter table with information from start to thend (where all tracks are common and copy the data to new pandas data frame
+    track_const_distance_common[i]=track_const_distance[i].loc[START_INDEX_COMMON[i]:STOP_INDEX_COMMON[i]:, :]
 
-    # copy out of the first tuple from track i the index of the way point and append it to the list
-    # START_INDEX_COMMON.append(nbrs_common.loc[nbrs_common.index[idx],i])
-    START_INDEX_COMMON.append(nbrs_common.loc[idx, i])
-
-    # filter table with information from start (where all tracks are common and copy the data to new pandas data frame
-    track_const_distance_common[i]=track_const_distance[i].loc[START_INDEX_COMMON[i]::, :]
-    # and drop not required coloums because they are re-calculated (e.g. distance from start would be now wrong because
+    # and drop not required colums because they are re-calculated (e.g. distance from start would be now wrong because
     # some points have been removed due to the reduction of the way points according to DISTANCE
     track_const_distance_common[i]=track_const_distance_common[i].drop(['distance from start [m]','match multiple'],axis=1)
 
     # calculate the length of each track and store it in list
     NO_LEN_TRACKS_COMMON.append(len(track_const_distance_common[i]))
- # number of way points of shortest track - this is need because the shortes track defines the lenght where a
- # comparison is possible
+    # number of way points of shortest track - this is need because the shortes track defines the lenght where a
+     # comparison is possible
 MIN_LEN_TRACK_COMMON = min(NO_LEN_TRACKS_COMMON)
 
 # now adjust all tracks on the length of the shortest track that a comparison of tracks is possible
 for tr in range(N0_TRACKS):
-
     track_const_distance_common[tr] = track_const_distance_common[tr].loc[START_INDEX_COMMON[tr]:START_INDEX_COMMON[tr]+MIN_LEN_TRACK_COMMON-1:, :]
 
 # now generate elapsed time@way point as well as distance traveled since start for each track
 # iterate of the number of tracks
 for tr in range(N0_TRACKS):
     # no iterate over the individual track
+    # print('track:',tr)
     for cnt,idx in enumerate(track_const_distance_common[tr].index):
         # the first element need a special handling for later difference calcluation
         if cnt==0:
@@ -520,7 +499,6 @@ ax1.grid(True)
 # plot the tim difference over distance
 for i in range(1,N0_TRACKS):
    idx=times_pd.columns[i+N0_TRACKS*2] # start column = diff_track_Track_1 up to diff_track_Track_x
-   print(idx)
    ax1.plot(# x axes = distance
             times_pd['Distance [m]']/1000,
             # y axes = calculated difference of current track to referenced track
